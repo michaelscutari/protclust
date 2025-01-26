@@ -1,5 +1,3 @@
-Here is a rewritten README.md section that can be directly copy-pasted:
-
 # My Library
 
 A Python library for clustering biological sequences and splitting data into train/test sets. This library uses MMseqs2 for sequence clustering.
