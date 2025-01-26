@@ -143,7 +143,7 @@ def cluster_split(
     _check_mmseqs()
 
     # Step 1: Cluster sequences
-    df = cluster_sequences(df, sequence_col, id_col, min_seq_id, coverage, cov_mode)
+    df = cluster(df, sequence_col, id_col, min_seq_id, coverage, cov_mode)
 
     # Step 2: Compute cluster sizes
     cluster_sizes = df.groupby("representative_sequence").size().reset_index(name="cluster_size")
