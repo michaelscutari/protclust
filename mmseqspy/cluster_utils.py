@@ -13,8 +13,35 @@ def _check_mmseqs():
             "MMseqs2 is not installed or not found in PATH. "
             "See the README for installation instructions."
         )
+    
+def clean(
+    df, 
+    sequence_col='sequence', 
+    valid_amino_acids='ACDEFGHIKLMNPQRSTVWY'
+):
+    """
+    Removes sequences with invalid protein characters.
 
-def cluster_sequences(
+    Parameters:
+        df (pd.DataFrame): Input DataFrame with protein sequences.
+        sequence_col (str): Name of the column containing sequences.
+        valid_amino_acids (str): String of valid amino acid characters.
+
+    Returns:
+        pd.DataFrame: Cleaned DataFrame with only valid sequences.
+    """
+    # Convert sequences to uppercase to standardize checking
+    df[sequence_col] = df[sequence_col].str.upper()
+    
+    # Create a mask of valid sequences
+    valid_sequence_mask = df[sequence_col].apply(
+        lambda seq: all(aa in valid_amino_acids for aa in seq)
+    )
+    
+    # Return DataFrame with only valid sequences
+    return df[valid_sequence_mask].reset_index(drop=True)
+
+def cluster(
     df,
     sequence_col,
     id_col="id",
@@ -85,7 +112,7 @@ def cluster_sequences(
     return df
 
 
-def cluster_split_data(
+def cluster_split(
     df,
     sequence_col,
     id_col="id",
@@ -114,7 +141,7 @@ def cluster_split_data(
         (pd.DataFrame, pd.DataFrame): (train_df, test_df)
     """
     _check_mmseqs()
-    
+
     # Step 1: Cluster sequences
     df = cluster_sequences(df, sequence_col, id_col, min_seq_id, coverage, cov_mode)
 

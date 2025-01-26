@@ -1,3 +1,3 @@
-from .cluster_utils import cluster_sequences, cluster_split_data
+from .cluster_utils import cluster, clean, cluster_split
 
-__all__ = ["cluster_sequences", "cluster_split_data"]
+__all__ = ["clean", "cluster", "cluster_split"]
