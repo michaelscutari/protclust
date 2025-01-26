@@ -32,6 +32,9 @@ def clean(
     """
     # Convert sequences to uppercase to standardize checking
     df[sequence_col] = df[sequence_col].str.upper()
+
+    # Remove nan values
+    df = df.dropna(subset=[sequence_col])
     
     # Create a mask of valid sequences
     valid_sequence_mask = df[sequence_col].apply(
