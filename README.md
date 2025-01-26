@@ -63,11 +63,14 @@ df = pd.DataFrame({
         "sequence": ["ATCG", "GCTA", "TAGC"]
 })
 
+# Clean data
+clean_df = clean(df)
+
 # Cluster sequences
-clustered_df = cluster_sequences(df, sequence_col="sequence")
+clustered_df = cluster(clean_df, sequence_col="sequence")
 
 # Split data into train and test sets
-train_df, test_df = cluster_split_data(clustered_df, sequence_col="sequence", test_size=0.3)
+train_df, test_df = cluster_split(clustered_df, sequence_col="sequence", test_size=0.3)
 
 print("Train set:\n", train_df)
 print("Test set:\n", test_df)
@@ -77,5 +80,3 @@ print("Test set:\n", test_df)
 
 - Ensure MMseqs2 is installed and accessible via the command line before using the library.
 - You can customize MMseqs2 parameters such as `min_seq_id`, `coverage`, and `cov_mode` when calling the functions.
-
-This version of the `README.md` is clean, concise, and includes all necessary instructions and usage examples for users.
