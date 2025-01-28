@@ -40,7 +40,7 @@ def clean(
 def cluster(
     df,
     sequence_col,
-    id_col="id",
+    id_col=None,
     min_seq_id=0.3,
     coverage=0.5,
     cov_mode=0
@@ -60,6 +60,10 @@ def cluster(
         pd.DataFrame: Original DataFrame with a new 'representative_sequence' column.
     """
     _check_mmseqs()
+
+    if id_col is None:
+        df = df.reset_index()
+        id_col = "index"
 
     if sequence_col not in df or id_col not in df:
         raise ValueError(f"The DataFrame must have '{id_col}' and '{sequence_col}'.")
@@ -164,7 +168,7 @@ def split(
 def cluster_split(
     df,
     sequence_col,
-    id_col="id",
+    id_col=None,
     test_size=0.2,
     min_seq_id=0.3,
     coverage=0.5,
