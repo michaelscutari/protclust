@@ -83,7 +83,8 @@ def cluster(
             "mmseqs", "easy-cluster", input_fasta, output_dir, tmp_mmseqs,
             "--min-seq-id", str(min_seq_id),
             "-c", str(coverage),
-            "--cov-mode", str(cov_mode)
+            "--cov-mode", str(cov_mode),
+            '--alignment-mode', '3'
         ], check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
         clusters_file = os.path.join(output_dir + "_cluster.tsv")
