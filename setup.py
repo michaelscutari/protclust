@@ -3,7 +3,7 @@ from setuptools import setup, find_packages
 
 setup(
     name="mmseqspy",
-    version="0.1.4",
+    version="0.1.5",
     description="A utility library for clustering sequences and splitting data with MMseqs2 and pandas",
     packages=find_packages(),
     install_requires=[
