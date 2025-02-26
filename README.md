@@ -36,7 +36,13 @@ MMseqs2 must be accessible via the `mmseqs` command in your system's PATH. If th
 
 ## Installation
 
-To install this library, clone the repository and run the following command in the project root:
+You can install MMseqsPy using pip:
+
+```bash
+pip install mmseqspy
+```
+
+Or if installing from source, clone the repository and run the following command in the project root:
 
 ```bash
 pip install .
