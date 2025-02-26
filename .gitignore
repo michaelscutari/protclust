@@ -3,3 +3,4 @@ tests/
 build/
 mmseqspy.egg-info/
 mmseqspy/__pycache__/
+.ruff_cache
