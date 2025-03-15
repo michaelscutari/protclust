@@ -19,3 +19,4 @@ mmseqspy/__pycache__/
 htmlcov/
 coverage.xml
 __pycache__
+tests/__pycache__/
