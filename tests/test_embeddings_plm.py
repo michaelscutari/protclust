@@ -9,7 +9,7 @@ from pathlib import Path
 
 
 # Set up mocks for external dependencies
-@pytest.fixture
+@pytest.fixture(autouse=True)
 def mock_esm(monkeypatch):
     """Mock ESM library."""
 
@@ -17,13 +17,13 @@ def mock_esm(monkeypatch):
         def __init__(self):
             self.num_layers = 5
             self.layers = [None] * self.num_layers  # Add this line
-            self.args = type("obj", (object,), {"embed_dim": 16})
-            self.embed_tokens = type("obj", (object,), {"embedding_dim": 16})()
+            self.args = type("obj", (object,), {"embed_dim": 320})
+            self.embed_tokens = type("obj", (object,), {"embedding_dim": 320})()
 
         def __call__(self, tokens, repr_layers):
             batch_size, seq_len = tokens.shape
             representations = {
-                layer: torch.ones((batch_size, seq_len, 16)) for layer in repr_layers
+                layer: torch.ones((batch_size, seq_len, 320)) for layer in repr_layers
             }
             return {"representations": representations}
 
@@ -81,7 +81,7 @@ def mock_esm(monkeypatch):
     return mock_module
 
 
-@pytest.fixture
+@pytest.fixture(autouse=True)
 def mock_transformers(monkeypatch):
     """Mock transformers library."""
 
@@ -222,7 +222,7 @@ def mock_esm_api(monkeypatch):
     # Use autouse=True to apply this fixture automatically to all tests that need it
     # Mock at ESMAPIEmbedder.make_api_request level instead of the requests module
     monkeypatch.setattr(
-        "mmseqspy.embeddings.api.ESMAPIEmbedder._make_request",
+        "mmseqspy.embeddings.remote.ESMAPIEmbedder._make_request",
         lambda self, url, data: MockResponse(),
     )
 
@@ -239,26 +239,26 @@ def test_esm_embedder(mock_esm):
     from mmseqspy.embeddings import ESMEmbedder
 
     # Initialize embedder
-    embedder = ESMEmbedder()
+    embedder = ESMEmbedder(model_name="esm2_t6_8M_UR50D")
 
     # Generate embedding for a sequence
-    embedding = embedder.generate("ACDEFGHIKL")
-    assert embedding.shape == (16,)  # Default pooled embedding
+    embedding = embedder.generate("ACDEFGHIKL")  # 320-dim since esm2-8m is default
+    assert embedding.shape == (320,)  # Default pooled embedding
 
     # Test per-residue embeddings
     embedding = embedder.generate("ACDEFGHIKL", pooling="none")
-    assert embedding.shape == (10, 16)  # 10 residues, 16 dimensions
+    assert embedding.shape == (10, 320)  # 10 residues, 16 dimensions
 
     # Test empty sequence
     embedding = embedder.generate("")
-    assert embedding.shape == (16,)  # Default pooled for empty
+    assert embedding.shape == (320,)  # Default pooled for empty
 
     # Test batch generation
     embeddings = embedder.batch_generate(["ACDEFG", "KLM", ""])
     assert len(embeddings) == 3
-    assert embeddings[0].shape == (16,)
-    assert embeddings[1].shape == (16,)
-    assert embeddings[2].shape == (16,)
+    assert embeddings[0].shape == (320,)
+    assert embeddings[1].shape == (320,)
+    assert embeddings[2].shape == (320,)
 
 
 def test_prottrans_embedder(mock_transformers):
@@ -288,7 +288,7 @@ def test_prottrans_embedder(mock_transformers):
 @pytest.mark.skip("Skipping due to requests/charset_normalizer circular import issue")
 def test_esm_api_embedder(mock_esm_api, temp_cache_dir):
     """Test the ESM API embedder basic functionality."""
-    from mmseqspy.embeddings import ESMAPIEmbedder
+    from mmseqspy.embeddings.remote import ESMAPIEmbedder
 
     # Initialize embedder with cache
     embedder = ESMAPIEmbedder(cache_dir=temp_cache_dir)
