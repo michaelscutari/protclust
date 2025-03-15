@@ -22,6 +22,14 @@ from .storage import (
     get_embeddings_from_hdf,
     list_embeddings_in_hdf,
 )
+from .esm import ESMEmbedder
+from .transformers import ProtTransEmbedder
+from .remote import ESMAPIEmbedder
+
+# Register embedders
+register_embedder("esm", ESMEmbedder)
+register_embedder("prottrans", ProtTransEmbedder)
+register_embedder("esm_api", ESMAPIEmbedder)
 
 
 # Convenience functions for common embedding types
@@ -48,6 +56,32 @@ def property_embedding(df, sequence_col="sequence", **kwargs):
 def onehot(df, sequence_col="sequence", **kwargs):
     """Add one-hot encoded embeddings to DataFrame."""
     return embed_sequences(df, "onehot", sequence_col, **kwargs)
+
+
+def esm2(df, sequence_col="sequence", model_name="esm2_t6_8M_UR50D", **kwargs):
+    """Add ESM embeddings to DataFrame."""
+    return embed_sequences(
+        df, "esm", sequence_col, model_kwargs={"model_name": model_name, **kwargs}
+    )
+
+
+def prot_bert(df, sequence_col="sequence", **kwargs):
+    """Add ProtBERT embeddings to DataFrame."""
+    return embed_sequences(
+        df, "prottrans", sequence_col, model_kwargs={"model_name": "bert", **kwargs}
+    )
+
+
+def prot_t5(df, sequence_col="sequence", **kwargs):
+    """Add ProtT5 embeddings to DataFrame."""
+    return embed_sequences(
+        df, "prottrans", sequence_col, model_kwargs={"model_name": "t5", **kwargs}
+    )
+
+
+def esm_api(df, sequence_col="sequence", **kwargs):
+    """Add ESM API embeddings to DataFrame."""
+    return embed_sequences(df, "esm_api", sequence_col, model_kwargs={**kwargs})
 
 
 __all__ = [

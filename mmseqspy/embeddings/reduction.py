@@ -3,9 +3,7 @@
 import os
 import numpy as np
 import pickle
-from typing import Tuple
-from sklearn.decomposition import PCA
-from typing import Any
+from typing import Tuple, Any
 
 
 def reduce_dimensions(
@@ -23,6 +21,9 @@ def reduce_dimensions(
         Tuple of (reduced_embeddings, reducer)
     """
     if method.lower() == "pca":
+        # Import PCA here to avoid circular imports
+        from sklearn.decomposition import PCA
+
         reducer = PCA(n_components=n_components)
         reduced = reducer.fit_transform(embeddings)
         return reduced, reducer

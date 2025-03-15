@@ -1,30 +1,31 @@
 # setup.py
-from setuptools import find_packages, setup
+from setuptools import setup, find_packages
 
 setup(
     name="mmseqspy",
-    version="0.3.0",
-    description="Python utilities for protein sequence clustering and dataset splitting with MMseqs2",
-    long_description="""
-    mmseqspy provides utilities for clustering protein sequences and creating train-test splits
-    that respect sequence similarity. It requires MMseqs2 to be installed and in your PATH.
-    Features include sequence clustering, cluster-aware train/test splits, k-fold cross-validation,
-    and constrained dataset splitting.
-    """,
-    author="Michael Scutari",
-    author_email="michael.scutari@duke.edu",
-    url="https://github.com/michaelscutari/mmseqspy",
+    version="0.1.0",
+    description="Python tools for protein sequence embeddings",
+    author="Singh Lab",
     packages=find_packages(),
+    python_requires=">=3.7",
     install_requires=[
-        "pandas",
-        "numpy",
+        "numpy>=1.20.0",
+        "pandas>=1.5.0",
+        "scikit-learn>=1.0.0",
+        "h5py>=3.0.0",
     ],
-    python_requires=">=3.6",
+    extras_require={
+        "dev": [
+            "pytest>=7.0.0",
+            "pytest-cov>=4.0.0",
+            "pre-commit>=2.20.0",
+            "ruff>=0.10.0",
+        ],
+    },
     classifiers=[
-        "Development Status :: 4 - Beta",
-        "Intended Audience :: Science/Research",
-        "Topic :: Scientific/Engineering :: Bio-Informatics",
         "Programming Language :: Python :: 3",
+        "License :: OSI Approved :: MIT License",
+        "Operating System :: OS Independent",
+        "Topic :: Scientific/Engineering :: Bio-Informatics",
     ],
-    keywords="bioinformatics, protein, sequence, clustering, mmseqs2",
 )
