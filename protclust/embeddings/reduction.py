@@ -1,9 +1,10 @@
 """Dimension reduction utilities for protein sequence embeddings."""
 
 import os
-import numpy as np
 import pickle
-from typing import Tuple, Any
+from typing import Any, Tuple
+
+import numpy as np
 
 
 def reduce_dimensions(

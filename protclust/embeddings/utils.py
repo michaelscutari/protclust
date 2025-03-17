@@ -1,7 +1,8 @@
 """Utility functions for embeddings."""
 
-import numpy as np
 from typing import List, Optional
+
+import numpy as np
 
 
 def pad_sequences(
@@ -79,9 +80,7 @@ def normalize_embeddings(embeddings: np.ndarray, method: str = "minmax") -> np.n
         raise ValueError(f"Unknown normalization method: {method}")
 
 
-def compare_embeddings(
-    emb1: np.ndarray, emb2: np.ndarray, metric: str = "cosine"
-) -> float:
+def compare_embeddings(emb1: np.ndarray, emb2: np.ndarray, metric: str = "cosine") -> float:
     """
     Calculate similarity between two embeddings.
 
@@ -101,9 +100,7 @@ def compare_embeddings(
     emb2_flat = emb2.flatten()
 
     if len(emb1_flat) != len(emb2_flat):
-        raise ValueError(
-            f"Embeddings have different dimensions: {emb1.shape} vs {emb2.shape}"
-        )
+        raise ValueError(f"Embeddings have different dimensions: {emb1.shape} vs {emb2.shape}")
 
     if metric == "cosine":
         # Cosine similarity

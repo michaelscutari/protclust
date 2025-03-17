@@ -1,8 +1,10 @@
 """ESM embeddings for protein sequences."""
 
-import torch
+from typing import List, Optional
+
 import numpy as np
-from typing import Optional, List
+import torch
+
 from ..logger import logger
 from .baseline import BaseEmbedder
 
@@ -49,15 +51,11 @@ class ESMEmbedder(BaseEmbedder):
         try:
             import esm
         except ImportError:
-            raise ImportError(
-                "ESM package not found. Install with: pip install fair-esm"
-            )
+            raise ImportError("ESM package not found. Install with: pip install fair-esm")
 
         logger.info(f"Loading ESM model: {self.model_name}")
 
-        self.model, self.alphabet = esm.pretrained.load_model_and_alphabet(
-            self.model_name
-        )
+        self.model, self.alphabet = esm.pretrained.load_model_and_alphabet(self.model_name)
         self.model.to(self.device).eval()
 
         # Determine the total number of layers in the model
@@ -97,9 +95,7 @@ class ESMEmbedder(BaseEmbedder):
         """
         # Handle empty sequence
         if not sequence:
-            if pooling == "none" or (
-                pooling == "auto" and self.default_pooling == "none"
-            ):
+            if pooling == "none" or (pooling == "auto" and self.default_pooling == "none"):
                 return np.zeros((0, self.embedding_dim))
             else:
                 return np.zeros(self.embedding_dim)
@@ -115,13 +111,9 @@ class ESMEmbedder(BaseEmbedder):
         # Compute embeddings
         with torch.no_grad():
             _, _, batch_tokens = self.batch_converter(batch_data)
-            results = self.model(
-                batch_tokens.to(self.device), repr_layers=[self.repr_layer]
-            )
+            results = self.model(batch_tokens.to(self.device), repr_layers=[self.repr_layer])
             embedding = (
-                results["representations"][self.repr_layer][0, 1 : len(sequence) + 1]
-                .cpu()
-                .numpy()
+                results["representations"][self.repr_layer][0, 1 : len(sequence) + 1].cpu().numpy()
             )
 
         return self._apply_pooling(embedding, pooling)
@@ -160,9 +152,7 @@ class ESMEmbedder(BaseEmbedder):
         # Handle empty sequences
         for seq in sequences:
             if not seq:
-                if pooling == "none" or (
-                    pooling == "auto" and self.default_pooling == "none"
-                ):
+                if pooling == "none" or (pooling == "auto" and self.default_pooling == "none"):
                     results.append(np.zeros((0, self.embedding_dim)))
                 else:
                     results.append(np.zeros(self.embedding_dim))
@@ -177,9 +167,7 @@ class ESMEmbedder(BaseEmbedder):
                 batch = processed_sequences[i : i + batch_size]
 
                 _, _, batch_tokens = self.batch_converter(batch)
-                outputs = self.model(
-                    batch_tokens.to(self.device), repr_layers=[self.repr_layer]
-                )
+                outputs = self.model(batch_tokens.to(self.device), repr_layers=[self.repr_layer])
                 embeddings = outputs["representations"][self.repr_layer].cpu().numpy()
 
                 for j, (label, seq) in enumerate(batch):

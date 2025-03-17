@@ -1,14 +1,16 @@
 """Core API for protein sequence embeddings."""
 
-import pandas as pd
+from typing import List, Optional, Union
+
 import numpy as np
-from typing import List, Union, Optional
+import pandas as pd
+
 from .reduction import reduce_dimensions
 from .storage import (
-    store_embeddings_in_df,
-    store_embeddings_in_hdf,
     get_embeddings_from_df,
     get_embeddings_from_hdf,
+    store_embeddings_in_df,
+    store_embeddings_in_hdf,
 )
 
 # Registry of available embedders
@@ -30,9 +32,7 @@ def register_embedder(name: str, embedder_class):
 
     # Validate that the class implements the required interface
     if not issubclass(embedder_class, BaseEmbedder):
-        raise ValueError(
-            f"Class {embedder_class.__name__} must inherit from BaseEmbedder"
-        )
+        raise ValueError(f"Class {embedder_class.__name__} must inherit from BaseEmbedder")
 
     # Add to registry
     _EMBEDDER_REGISTRY[name] = embedder_class
@@ -50,8 +50,7 @@ def get_embedder(name: str):
     """
     if name not in _EMBEDDER_REGISTRY:
         raise ValueError(
-            f"Unknown embedding type: {name}. "
-            f"Available types: {list(_EMBEDDER_REGISTRY.keys())}"
+            f"Unknown embedding type: {name}. Available types: {list(_EMBEDDER_REGISTRY.keys())}"
         )
 
     # Return the embedder class (not an instance)
@@ -178,8 +177,7 @@ def embed_sequences(
     # Generate embeddings for each sequence
     sequences = df[sequence_col].tolist()
     embeddings = [
-        embedder.generate(seq, pooling=pooling, max_length=max_length)
-        for seq in sequences
+        embedder.generate(seq, pooling=pooling, max_length=max_length) for seq in sequences
     ]
 
     # Apply dimension reduction if requested
@@ -189,15 +187,11 @@ def embed_sequences(
         # Force pooling if embeddings are not already uniform
         if any(emb.ndim > 1 for emb in embeddings):
             # Apply mean pooling to get a single vector per sequence
-            embeddings = [
-                np.mean(emb, axis=0) if emb.ndim > 1 else emb for emb in embeddings
-            ]
+            embeddings = [np.mean(emb, axis=0) if emb.ndim > 1 else emb for emb in embeddings]
 
         # Convert to 2D array for reduction algorithms
         X = np.vstack(embeddings)
-        reduced_X, reducer = reduce_dimensions(
-            X, method=reduce_dim, n_components=n_components
-        )
+        reduced_X, reducer = reduce_dimensions(X, method=reduce_dim, n_components=n_components)
         embeddings = list(reduced_X)
 
         # Update embedding type to indicate reduction
@@ -261,9 +255,7 @@ def get_embeddings(
         references = df[reference_col].tolist()
         embeddings = get_embeddings_from_hdf(references, hdf_path)
     else:
-        raise ValueError(
-            f"No embeddings found for type '{embedding_type}' in DataFrame"
-        )
+        raise ValueError(f"No embeddings found for type '{embedding_type}' in DataFrame")
 
     # Return embeddings as list or numpy array based on user preference
     if not as_array:

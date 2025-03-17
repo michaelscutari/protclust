@@ -1,8 +1,8 @@
-import os
-import tempfile
-import subprocess
-import shutil
 import logging
+import os
+import shutil
+import subprocess
+import tempfile
 
 from .logger import logger
 from .utils import _check_mmseqs, _validate_clustering_params
@@ -154,9 +154,7 @@ def cluster(
             lambda x: reverse_map.get(cluster_map.get(x, x), x)
         )
 
-        logger.info(
-            "Clustering complete, added 'representative_sequence' column to DataFrame"
-        )
+        logger.info("Clustering complete, added 'representative_sequence' column to DataFrame")
 
     finally:
         logger.debug(f"Cleaning up temporary directory: {tmp_dir}")

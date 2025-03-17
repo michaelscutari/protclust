@@ -1,13 +1,14 @@
 """Baseline protein sequence embedders."""
 
-import numpy as np
 from typing import Dict, List, Optional
 
-# Import matrix data
-from .matrices import BLOSUM62, BLOSUM90, PROPERTY_SCALES
+import numpy as np
 
 # Register embedders at module level
 from .api import register_embedder
+
+# Import matrix data
+from .matrices import BLOSUM62, BLOSUM90, PROPERTY_SCALES
 
 
 class BaseEmbedder:
@@ -238,10 +239,7 @@ class PropertyEmbedder(BaseEmbedder):
 
         # Generate per-residue embeddings
         embedding = np.array(
-            [
-                [self.scales[prop].get(aa, 0) for prop in self.properties]
-                for aa in sequence
-            ]
+            [[self.scales[prop].get(aa, 0) for prop in self.properties] for aa in sequence]
         )
 
         # Apply pooling if requested

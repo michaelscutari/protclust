@@ -7,24 +7,24 @@ from .api import (
     register_embedder,
 )
 from .baseline import (
-    BLOSUMEmbedder,
     AACompositionEmbedder,
-    PropertyEmbedder,
-    OneHotEmbedder,
     BLOSUM90Embedder,
+    BLOSUMEmbedder,
     DiAACompositionEmbedder,
+    OneHotEmbedder,
+    PropertyEmbedder,
 )
-from .reduction import reduce_dimensions, apply_reducer, save_reducer, load_reducer
+from .esm import ESMEmbedder
+from .reduction import apply_reducer, load_reducer, reduce_dimensions, save_reducer
+from .remote import ESMAPIEmbedder
 from .storage import (
-    store_embeddings_in_df,
-    store_embeddings_in_hdf,
     get_embeddings_from_df,
     get_embeddings_from_hdf,
     list_embeddings_in_hdf,
+    store_embeddings_in_df,
+    store_embeddings_in_hdf,
 )
-from .esm import ESMEmbedder
 from .transformers import ProtTransEmbedder
-from .remote import ESMAPIEmbedder
 
 # Register embedders
 register_embedder("esm", ESMEmbedder)

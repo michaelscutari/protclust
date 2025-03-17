@@ -1,8 +1,10 @@
 """Protein embeddings using transformer models from HuggingFace."""
 
-import torch
+from typing import List, Optional
+
 import numpy as np
-from typing import Optional, List
+import torch
+
 from ..logger import logger
 from .baseline import BaseEmbedder
 
@@ -62,7 +64,7 @@ class ProtTransEmbedder(BaseEmbedder):
     def _initialize_model(self, layer):
         """Initialize the transformer model and tokenizer."""
         try:
-            from transformers import AutoTokenizer, AutoModel, T5EncoderModel
+            from transformers import AutoModel, AutoTokenizer, T5EncoderModel
         except ImportError:
             raise ImportError(
                 "Transformers package not found. Install with: pip install transformers"
@@ -78,9 +80,7 @@ class ProtTransEmbedder(BaseEmbedder):
             self.model = T5EncoderModel.from_pretrained(self.model_name)
             self.model_type = "t5"
         else:
-            self.model = AutoModel.from_pretrained(
-                self.model_name, output_hidden_states=True
-            )
+            self.model = AutoModel.from_pretrained(self.model_name, output_hidden_states=True)
             self.model_type = "bert"  # Default to BERT-like models
 
         self.model.to(self.device).eval()
@@ -122,9 +122,7 @@ class ProtTransEmbedder(BaseEmbedder):
         """
         # Handle empty sequence case
         if not sequence:
-            if pooling == "none" or (
-                pooling == "auto" and self.default_pooling == "none"
-            ):
+            if pooling == "none" or (pooling == "auto" and self.default_pooling == "none"):
                 return np.zeros((0, self.embedding_dim))
             else:
                 return np.zeros(self.embedding_dim)
@@ -155,9 +153,7 @@ class ProtTransEmbedder(BaseEmbedder):
                 embedding = outputs.last_hidden_state[0].cpu().numpy()
             else:
                 embedding = (
-                    outputs.hidden_states[self.repr_layer][0, 1 : len(sequence) + 1]
-                    .cpu()
-                    .numpy()
+                    outputs.hidden_states[self.repr_layer][0, 1 : len(sequence) + 1].cpu().numpy()
                 )
 
         return self._apply_pooling(embedding, pooling)
@@ -201,9 +197,7 @@ class ProtTransEmbedder(BaseEmbedder):
         results = []
         for seq in sequences:
             if not seq:
-                if pooling == "none" or (
-                    pooling == "auto" and self.default_pooling == "none"
-                ):
+                if pooling == "none" or (pooling == "auto" and self.default_pooling == "none"):
                     results.append(np.zeros((0, self.embedding_dim)))
                 else:
                     results.append(np.zeros(self.embedding_dim))

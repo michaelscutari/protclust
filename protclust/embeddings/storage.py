@@ -1,10 +1,11 @@
 """Storage utilities for protein sequence embeddings."""
 
 import os
+from typing import Dict, List, Optional
+
+import h5py
 import numpy as np
 import pandas as pd
-import h5py
-from typing import List, Dict, Optional
 
 
 def store_embeddings_in_df(

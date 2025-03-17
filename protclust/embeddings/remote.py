@@ -1,13 +1,15 @@
 """Remote API-based embeddings for protein sequences."""
 
-import os
-import json
-import time
-import requests
 import hashlib
-import numpy as np
+import json
+import os
+import time
 from pathlib import Path
-from typing import Optional, List
+from typing import List, Optional
+
+import numpy as np
+import requests
+
 from ..logger import logger
 from .baseline import BaseEmbedder
 
@@ -56,9 +58,7 @@ class ESMAPIEmbedder(BaseEmbedder):
         # Set API key
         self.api_key = api_key or os.environ.get("ESM_API_KEY")
         if not self.api_key:
-            logger.warning(
-                "No API key provided. Set api_key or ESM_API_KEY environment variable."
-            )
+            logger.warning("No API key provided. Set api_key or ESM_API_KEY environment variable.")
 
         # Setup caching
         self.use_cache = cache_dir is not None
@@ -120,9 +120,7 @@ class ESMAPIEmbedder(BaseEmbedder):
         """
         # Handle empty sequence case
         if not sequence:
-            if pooling == "none" or (
-                pooling == "auto" and self.default_pooling == "none"
-            ):
+            if pooling == "none" or (pooling == "auto" and self.default_pooling == "none"):
                 return np.zeros((0, self.embedding_dim))
             else:
                 return np.zeros(self.embedding_dim)
@@ -135,9 +133,7 @@ class ESMAPIEmbedder(BaseEmbedder):
         # Try to get from cache
         embedding = self._get_cached_embedding(sequence)
         if embedding is not None:
-            logger.debug(
-                f"Using cached embedding for sequence of length {len(sequence)}"
-            )
+            logger.debug(f"Using cached embedding for sequence of length {len(sequence)}")
             return self._apply_pooling(embedding, pooling)
 
         # Prepare API request
@@ -154,9 +150,7 @@ class ESMAPIEmbedder(BaseEmbedder):
         # Make API request with retries
         for attempt in range(self.max_retries):
             try:
-                logger.debug(
-                    f"Requesting embedding for sequence of length {len(sequence)}"
-                )
+                logger.debug(f"Requesting embedding for sequence of length {len(sequence)}")
                 response = requests.post(
                     self.API_URL,
                     headers=headers,

@@ -1,10 +1,11 @@
-import pandas as pd
 import numpy as np
-from .logger import logger
-from .utils import check_random_state
+import pandas as pd
+
 from .clustering import (
     cluster as perform_clustering,
 )
+from .logger import logger
+from .utils import check_random_state
 
 
 def split(
@@ -91,9 +92,7 @@ def split(
 
     achieved_test_fraction = len(test_df) / total_sequences
 
-    logger.info(
-        f"Train set: {len(train_df)} sequences ({len(train_df) / total_sequences:.2%})"
-    )
+    logger.info(f"Train set: {len(train_df)} sequences ({len(train_df) / total_sequences:.2%})")
     logger.info(f"Test set: {len(test_df)} sequences ({achieved_test_fraction:.2%})")
 
     if abs(achieved_test_fraction - test_size) > tolerance:
@@ -197,14 +196,10 @@ def train_test_val_cluster_split(
 
     # Validate split parameters
     if test_size < 0 or val_size < 0:
-        raise ValueError(
-            f"test_size ({test_size}) and val_size ({val_size}) must be non-negative"
-        )
+        raise ValueError(f"test_size ({test_size}) and val_size ({val_size}) must be non-negative")
 
     if test_size + val_size >= 1.0:
-        raise ValueError(
-            f"test_size ({test_size}) + val_size ({val_size}) must be less than 1.0"
-        )
+        raise ValueError(f"test_size ({test_size}) + val_size ({val_size}) must be less than 1.0")
 
     logger.info("Step 1: Clustering sequences")
     df_clustered = perform_clustering(  # Use the renamed import
@@ -230,9 +225,7 @@ def train_test_val_cluster_split(
 
     logger.info("Step 3: Further splitting train+val into train vs val")
     adjusted_val_fraction = val_size / (1.0 - test_size)
-    logger.debug(
-        f"Adjusted validation fraction: {adjusted_val_fraction:.4f} of train+val set"
-    )
+    logger.debug(f"Adjusted validation fraction: {adjusted_val_fraction:.4f} of train+val set")
 
     train_df, val_df = split(
         df=train_val_df,
@@ -274,9 +267,7 @@ def constrained_split(
     # Check for conflicts at the sequence level
     conflicts = set(force_train_ids).intersection(set(force_test_ids))
     if conflicts:
-        logger.error(
-            f"Found {len(conflicts)} IDs in both force_train_ids and force_test_ids"
-        )
+        logger.error(f"Found {len(conflicts)} IDs in both force_train_ids and force_test_ids")
         raise ValueError("Cannot force the same IDs to both train and test sets")
 
     forced_train_groups = set()
@@ -310,12 +301,8 @@ def constrained_split(
     # Check for conflicts at the group level
     group_conflicts = forced_train_groups.intersection(forced_test_groups)
     if group_conflicts:
-        logger.error(
-            f"Found {len(group_conflicts)} groups forced to both train and test"
-        )
-        raise ValueError(
-            "Constraint conflict: some groups are forced to both train and test sets"
-        )
+        logger.error(f"Found {len(group_conflicts)} groups forced to both train and test")
+        raise ValueError("Constraint conflict: some groups are forced to both train and test sets")
 
     # Create forced splits based on group_col membership
     train_forced_mask = df[group_col].isin(forced_train_groups)
@@ -408,9 +395,7 @@ def cluster_kfold(
     """
     Performs k-fold cross-validation while respecting sequence clustering.
     """
-    logger.info(
-        f"Performing {n_splits}-fold cross-validation with cluster-aware splits"
-    )
+    logger.info(f"Performing {n_splits}-fold cross-validation with cluster-aware splits")
 
     # Get random state for reproducibility
     rng = check_random_state(random_state)
@@ -561,19 +546,17 @@ def milp_split(
     """
     try:
         from pulp import (
-            LpProblem,
-            LpVariable,
-            LpMinimize,
-            lpSum,
-            LpStatus,
-            LpBinary,
-            value,
             PULP_CBC_CMD,
+            LpBinary,
+            LpMinimize,
+            LpProblem,
+            LpStatus,
+            LpVariable,
+            lpSum,
+            value,
         )
     except ImportError:
-        logger.error(
-            "PuLP is required for MILP-based splitting. Install with 'pip install pulp'"
-        )
+        logger.error("PuLP is required for MILP-based splitting. Install with 'pip install pulp'")
         raise ImportError("PuLP is required for MILP-based splitting")
 
     logger.info(f"Performing MILP-based splitting with target test size {test_size}")
@@ -627,9 +610,7 @@ def milp_split(
             try:
                 # Mean value across residues
                 working_df[f"{res_col}_mean"] = df[res_col].apply(
-                    lambda x: np.mean(x)
-                    if isinstance(x, (list, np.ndarray))
-                    else np.nan
+                    lambda x: np.mean(x) if isinstance(x, (list, np.ndarray)) else np.nan
                 )
 
                 # Min and max values
@@ -681,18 +662,14 @@ def milp_split(
                     if working_df[col].isna().any():
                         col_mean = working_df[col].mean()
                         working_df[col].fillna(col_mean, inplace=True)
-                        logger.warning(
-                            f"Filled NaN values in {col} with mean: {col_mean:.4f}"
-                        )
+                        logger.warning(f"Filled NaN values in {col} with mean: {col_mean:.4f}")
 
             except Exception as e:
                 logger.error(f"Error processing residue column {res_col}: {str(e)}")
                 continue
 
         # Add residue-derived columns to balance_cols
-        balance_cols.extend(
-            [col for col in residue_derived_cols if col not in balance_cols]
-        )
+        balance_cols.extend([col for col in residue_derived_cols if col not in balance_cols])
 
     # Get unique clusters and their sizes
     group_sizes = df.groupby(group_col).size()
@@ -708,9 +685,7 @@ def milp_split(
     # Process all columns to balance (original + derived)
     for col in balance_cols:
         if col not in working_df.columns:
-            logger.warning(
-                f"Column '{col}' not found in working DataFrame, ignoring for balance"
-            )
+            logger.warning(f"Column '{col}' not found in working DataFrame, ignoring for balance")
             continue
 
         # Calculate sum of values per group (for mean balancing)
@@ -742,18 +717,12 @@ def milp_split(
         if global_max > global_min:
             range_threshold = 0.05 * (global_max - global_min)
             for group in groups:
-                if (
-                    group in group_min
-                    and (group_min[group] - global_min) <= range_threshold
-                ):
+                if group in group_min and (group_min[group] - global_min) <= range_threshold:
                     group_min_values[col][group] = 1
                 else:
                     group_min_values[col][group] = 0
 
-                if (
-                    group in group_max
-                    and (global_max - group_max[group]) <= range_threshold
-                ):
+                if group in group_max and (global_max - group_max[group]) <= range_threshold:
                     group_max_values[col][group] = 1
                 else:
                     group_max_values[col][group] = 0
@@ -767,20 +736,14 @@ def milp_split(
     prob = LpProblem("ClusterSplit", LpMinimize)
 
     # Decision variables (1 if group is in test set, 0 if in train set)
-    group_vars = {
-        group: LpVariable(f"group_{i}", cat=LpBinary) for i, group in enumerate(groups)
-    }
+    group_vars = {group: LpVariable(f"group_{i}", cat=LpBinary) for i, group in enumerate(groups)}
 
     # Variable to represent absolute difference from target test size
     size_deviation_var = LpVariable("size_deviation", lowBound=0)
 
     # Calculate total for each property
-    property_totals = {
-        col: group_prop.sum() for col, group_prop in group_properties.items()
-    }
-    variance_totals = {
-        col: variance_comp.sum() for col, variance_comp in group_variances.items()
-    }
+    property_totals = {col: group_prop.sum() for col, group_prop in group_properties.items()}
+    variance_totals = {col: variance_comp.sum() for col, variance_comp in group_variances.items()}
 
     # Variables to represent absolute differences for property balances
     balance_vars = {
@@ -794,12 +757,10 @@ def milp_split(
 
     # Variables to represent min/max range differences
     min_range_vars = {
-        col: LpVariable(f"min_range_{col}", lowBound=0)
-        for col in group_min_values.keys()
+        col: LpVariable(f"min_range_{col}", lowBound=0) for col in group_min_values.keys()
     }
     max_range_vars = {
-        col: LpVariable(f"max_range_{col}", lowBound=0)
-        for col in group_max_values.keys()
+        col: LpVariable(f"max_range_{col}", lowBound=0) for col in group_max_values.keys()
     }
 
     # Objective: minimize all deviations with their respective weights
@@ -808,9 +769,7 @@ def milp_split(
         balance_weight * lpSum(balance_vars.values()),  # Mean balance
         variance_weight * lpSum(variance_vars.values()),  # Variance balance
         range_weight
-        * lpSum(
-            list(min_range_vars.values()) + list(max_range_vars.values())
-        ),  # Range balance
+        * lpSum(list(min_range_vars.values()) + list(max_range_vars.values())),  # Range balance
     ]
 
     prob += lpSum(objective_terms)
@@ -823,9 +782,7 @@ def milp_split(
 
     # Constraints for property balance (mean)
     for col, group_prop in group_properties.items():
-        test_prop_sum = lpSum(
-            [group_vars[group] * group_prop[group] for group in groups]
-        )
+        test_prop_sum = lpSum([group_vars[group] * group_prop[group] for group in groups])
         target_test_prop_sum = test_size * property_totals[col]
         prob += balance_vars[col] >= test_prop_sum - target_test_prop_sum
         prob += balance_vars[col] >= target_test_prop_sum - test_prop_sum
@@ -833,11 +790,7 @@ def milp_split(
     # Constraints for variance balance
     for col, variance_comp in group_variances.items():
         test_variance_sum = lpSum(
-            [
-                group_vars[group] * variance_comp[group]
-                for group in groups
-                if group in variance_comp
-            ]
+            [group_vars[group] * variance_comp[group] for group in groups if group in variance_comp]
         )
         target_test_variance_sum = test_size * variance_totals[col]
         prob += variance_vars[col] >= test_variance_sum - target_test_variance_sum
@@ -876,7 +829,7 @@ def milp_split(
             prob += max_range_vars[col] >= target_max_range_test - max_range_test_count
 
     # Try to configure solver with time limit
-    from pulp import PulpSolverError, COIN_CMD
+    from pulp import COIN_CMD, PulpSolverError
 
     logger.info(f"Attempting to set MILP solver time limit to {time_limit} seconds")
 
@@ -903,12 +856,8 @@ def milp_split(
 
     # Option 3: Fall back to default solver with no time limit
     if solver is None:
-        logger.warning(
-            "No time-limited solver available. Using default solver without time limit."
-        )
-        logger.warning(
-            "To enable time limits, install CBC solver: pip install pulp[cbc]"
-        )
+        logger.warning("No time-limited solver available. Using default solver without time limit.")
+        logger.warning("To enable time limits, install CBC solver: pip install pulp[cbc]")
         prob.solve()
 
     logger.info(f"MILP solution status: {LpStatus[prob.status]}")
@@ -925,9 +874,7 @@ def milp_split(
 
     # Report results
     achieved_test_fraction = len(test_df) / total_size
-    logger.info(
-        f"Train set: {len(train_df)} sequences ({len(train_df) / total_size:.2%})"
-    )
+    logger.info(f"Train set: {len(train_df)} sequences ({len(train_df) / total_size:.2%})")
     logger.info(f"Test set: {len(test_df)} sequences ({achieved_test_fraction:.2%})")
 
     # Report balance of properties (original columns first)
@@ -937,17 +884,13 @@ def milp_split(
         train_mean = train_df[col].mean() if len(train_df) > 0 else 0
         test_mean = test_df[col].mean() if len(test_df) > 0 else 0
         mean_diff_pct = (
-            abs(test_mean - train_mean)
-            / (abs(train_mean) if train_mean != 0 else 1)
-            * 100
+            abs(test_mean - train_mean) / (abs(train_mean) if train_mean != 0 else 1) * 100
         )
 
         # Report variance balance
         train_var = train_df[col].var() if len(train_df) > 1 else 0
         test_var = test_df[col].var() if len(test_df) > 1 else 0
-        var_diff_pct = (
-            abs(test_var - train_var) / (abs(train_var) if train_var != 0 else 1) * 100
-        )
+        var_diff_pct = abs(test_var - train_var) / (abs(train_var) if train_var != 0 else 1) * 100
 
         # Report min/max balance
         train_min = train_df[col].min() if len(train_df) > 0 else 0
