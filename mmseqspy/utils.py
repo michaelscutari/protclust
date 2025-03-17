@@ -1,6 +1,6 @@
 import shutil
+
 import numpy as np
-import logging
 
 from .logger import logger
 
@@ -23,28 +23,7 @@ def check_random_state(random_state):
         return np.random.RandomState(random_state)
     elif isinstance(random_state, np.random.RandomState):
         return random_state
-    raise ValueError(
-        f"random_state must be None, int, or RandomState, got {type(random_state)}"
-    )
-
-
-def set_verbosity(verbose=False):
-    """
-    Set the verbosity level for the package.
-
-    Parameters:
-        verbose (bool or int): If True or 1, sets to INFO level.
-                               If 2, sets to DEBUG level.
-                               If False or 0, sets to WARNING level.
-    """
-    if verbose == 2:
-        logger.setLevel(logging.DEBUG)
-        logger.debug("Verbosity set to DEBUG level")
-    elif verbose:
-        logger.setLevel(logging.INFO)
-        logger.info("Verbosity set to INFO level")
-    else:
-        logger.setLevel(logging.WARNING)
+    raise ValueError(f"random_state must be None, int, or RandomState, got {type(random_state)}")
 
 
 def _check_mmseqs():
@@ -85,12 +64,8 @@ def _validate_clustering_params(
     if cov_mode not in [0, 1, 2]:
         raise ValueError(f"cov_mode must be 0, 1, or 2, got {cov_mode}")
     if alignment_mode not in [0, 1, 2, 3, 4]:
-        raise ValueError(
-            f"alignment_mode must be 0, 1, 2, 3, or 4, got {alignment_mode}"
-        )
+        raise ValueError(f"alignment_mode must be 0, 1, 2, 3, or 4, got {alignment_mode}")
     if cluster_mode not in [0, 1, 2]:
         raise ValueError(f"cluster_mode must be 0, 1, or 2, got {cluster_mode}")
     if not isinstance(cluster_steps, int) or cluster_steps <= 0:
-        raise ValueError(
-            f"cluster_steps must be a positive integer, got {cluster_steps}"
-        )
+        raise ValueError(f"cluster_steps must be a positive integer, got {cluster_steps}")

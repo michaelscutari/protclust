@@ -7,6 +7,7 @@ notebooks/
 .DS_Store
 data/
 tape/
+.git.bfg-report/
 
 # build artifacts
 build/
@@ -20,3 +21,4 @@ __pycache__
 htmlcov/
 coverage.xml
 tests/__pycache__/
+temp.h5

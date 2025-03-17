@@ -1,6 +1,15 @@
-# MMseqsPy
+# protclust
 
-A Python library for working with biological sequence data, providing clustering capabilities via MMseqs2 and utilities for train/test splits based on sequence similarity.
+[![PyPI version](https://img.shields.io/pypi/v/protclust.svg)](https://pypi.org/project/protclust/)
+[![Tests](https://github.com/michaelscutari/protclust/workflows/Tests/badge.svg)](https://github.com/michaelscutari/protclust/actions)
+[![codecov](https://codecov.io/gh/michaelscutari/protclust/branch/main/graph/badge.svg)](https://codecov.io/gh/michaelscutari/protclust)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Python Version](https://img.shields.io/pypi/pyversions/protclust.svg)](https://pypi.org/project/protclust/)
+
+A Python library for working with protein sequence data, providing:
+- Clustering capabilities via MMseqs2
+- Machine learning dataset creation with cluster-aware splits
+- Protein sequence embeddings and feature extraction
 
 ---
 
@@ -8,7 +17,7 @@ A Python library for working with biological sequence data, providing clustering
 
 This library requires [MMseqs2](https://github.com/soedinglab/MMseqs2), which must be installed and accessible via the command line. MMseqs2 can be installed using one of the following methods:
 
-### Installation Options
+### Installation Options for MMseqs2
 
 - **Homebrew**:
     ```bash
@@ -36,45 +45,41 @@ MMseqs2 must be accessible via the `mmseqs` command in your system's PATH. If th
 
 ## Installation
 
-You can install MMseqsPy using pip:
+### Installation
+
+You can install protclust using pip:
 
 ```bash
-pip install mmseqspy
+pip install protclust
 ```
 
-Or if installing from source, clone the repository and run the following command in the project root:
+Or if installing from source, clone the repository and run:
 
 ```bash
-pip install .
+pip install -e .
+```
+
+For development purposes, also install the testing dependencies:
+
+```bash
+pip install pytest pytest-cov pre-commit ruff
 ```
 
 ## Features
 
-This library provides the following functions:
-
-1. **clean**: Preprocesses sequence data by removing invalid characters and sequences.
-2. **cluster**: Clusters biological sequences using MMseqs2 and adds cluster information to a pandas DataFrame.
-3. **split**: Splits data into train/test sets while respecting cluster groupings.
-4. **train_test_cluster_split**: Performs clustering and train/test splitting in one step.
-5. **train_test_val_cluster_split**: Creates train/validation/test splits with cluster awareness.
-6. **constrained_split**: Creates data splits with constraints on which sequences must be in train or test sets.
-7. **cluster_kfold**: Performs k-fold cross-validation while respecting sequence clusters.
-
-## Quick Start
-
-Here's an example of how to use this library:
+### Sequence Clustering and Dataset Creation
 
 ```python
 import pandas as pd
-from mmseqspy.cluster_utils import clean, cluster, split, set_verbosity
+from protclust import clean, cluster, split, set_verbosity
 
-# Enable more detailed logging (optional)
+# Enable detailed logging (optional)
 set_verbosity(verbose=True)
 
 # Example data
 df = pd.DataFrame({
     "id": ["seq1", "seq2", "seq3", "seq4"],
-    "sequence": ["ACDEFGHIKL", "ACDEFGHIKL", "MNPdQRSTVWY", "MNPQRSTVWY"]
+    "sequence": ["ACDEFGHIKL", "ACDEFGHIKL", "MNPQRSTVWY", "MNPQRSTVWY"]
 })
 
 # Clean data
@@ -90,8 +95,60 @@ print("Train set:\n", train_df)
 print("Test set:\n", test_df)
 
 # Or use the combined function
-from mmseqspy.cluster_utils import train_test_cluster_split
+from protclust import train_test_cluster_split
 train_df, test_df = train_test_cluster_split(df, sequence_col="sequence", id_col="id", test_size=0.3)
+```
+
+### Advanced Splitting Options
+
+```python
+# Three-way split
+from protclust import train_test_val_cluster_split
+train_df, val_df, test_df = train_test_val_cluster_split(
+    df, sequence_col="sequence", test_size=0.2, val_size=0.1
+)
+
+# K-fold cross-validation with cluster awareness
+from protclust import cluster_kfold
+folds = cluster_kfold(df, sequence_col="sequence", n_splits=5)
+
+# MILP-based splitting with property balancing
+from protclust import milp_split
+train_df, test_df = milp_split(
+    clustered_df,
+    group_col="representative_sequence",
+    test_size=0.3,
+    balance_cols=["molecular_weight", "hydrophobicity"]
+)
+```
+
+### Protein Embeddings
+
+```python
+# Basic embeddings
+from protclust.embeddings import blosum62, aac, property_embedding, onehot
+
+# Add BLOSUM62 embeddings
+df_with_blosum = blosum62(df, sequence_col="sequence")
+
+# Generate embeddings with ESM models (requires extra dependencies)
+from protclust.embeddings import embed_sequences
+
+# ESM embedding
+df_with_esm = embed_sequences(df, "esm", sequence_col="sequence")
+
+# Saving embeddings to HDF5
+df_with_refs = embed_sequences(
+    df,
+    "esm",
+    sequence_col="sequence",
+    use_hdf=True,
+    hdf_path="embeddings.h5"
+)
+
+# Retrieve embeddings
+from protclust.embeddings import get_embeddings
+embeddings = get_embeddings(df_with_refs, "esm", hdf_path="embeddings.h5")
 ```
 
 ## Parameters
@@ -108,48 +165,31 @@ Common parameters for clustering functions:
 - `random_state`: Random seed for reproducibility
 - `tolerance`: Acceptable deviation from desired split sizes (default 0.05)
 
-## Advanced Features
+## Contributing
 
-### Three-way Splits
+Contributions are welcome! Please feel free to submit a Pull Request.
 
-```python
-from mmseqspy.cluster_utils import train_test_val_cluster_split
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/amazing-feature`)
+3. Run tests (`pytest tests/`)
+4. Commit your changes (`git commit -m 'Add some amazing feature'`)
+5. Push to the branch (`git push origin feature/amazing-feature`)
+6. Open a Pull Request
 
-train_df, val_df, test_df = train_test_val_cluster_split(
-    df, sequence_col="sequence", test_size=0.2, val_size=0.1
-)
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## Citation
+
+If you use protclust in your research, please cite:
+
+```bibtex
+@software{protclust,
+  author = {protclust Contributors},
+  title = {protclust: Protein Sequence Clustering and ML Dataset Creation},
+  url = {https://github.com/michaelscutari/protclust},
+  version = {0.1.0},
+  year = {2025},
+}
 ```
-
-### Cross-validation with Cluster Awareness
-
-```python
-from mmseqspy.cluster_utils import cluster_kfold
-
-folds = cluster_kfold(
-    df, sequence_col="sequence", n_splits=5, random_state=42
-)
-
-for i, (train_df, test_df) in enumerate(folds):
-    print(f"Fold {i+1}: {len(train_df)} train, {len(test_df)} test")
-```
-
-### Constrained Splits
-
-```python
-from mmseqspy.cluster_utils import constrained_split
-
-train_df, test_df = constrained_split(
-    clustered_df,
-    group_col="representative_sequence",
-    force_train_ids=["seq1", "seq2"],
-    force_test_ids=["seq3"],
-    id_type="sequence"
-)
-```
-
-## Notes
-
-- Ensure MMseqs2 is installed and accessible via the command line before using the library.
-- Temporary files are automatically cleaned up after processing.
-- The library provides detailed logging that can be controlled with `set_verbosity()`.
-- Set reproducible random seeds with `set_seed()`.
