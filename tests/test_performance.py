@@ -51,6 +51,7 @@ def test_clustering_scaling():
     )
 
 
+@pytest.mark.skip("Must be run locally due to long runtime on GitHub Actions.")
 def test_splitting_performance():
     """Test performance of various splitting methods."""
     # Generate a larger dataset
