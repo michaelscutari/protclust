@@ -11,9 +11,10 @@ tape/
 
 # build artifacts
 build/
-mmseqspy.egg-info/
-mmseqspy/__pycache__/
+protoclust.egg-info/
+protoclust/__pycache__/
 __pycache__
+.api_token
 
 # test artifacts
 .pytest_cache/

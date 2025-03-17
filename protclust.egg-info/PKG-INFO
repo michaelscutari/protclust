@@ -27,11 +27,15 @@ Requires-Dist: transformers>=4.15.0
 Requires-Dist: requests>=2.25.0
 Requires-Dist: pulp>=2.0.0
 
+<p align="left">
+  <img src="assets/images/logo.png" alt="protclust logo" width="100"/>
+</p>
+
 # protclust
 
 [![PyPI version](https://img.shields.io/pypi/v/protclust.svg)](https://pypi.org/project/protclust/)
 [![Tests](https://github.com/michaelscutari/protclust/workflows/Tests/badge.svg)](https://github.com/michaelscutari/protclust/actions)
-[![codecov](https://codecov.io/gh/michaelscutari/protclust/branch/main/graph/badge.svg)](https://codecov.io/gh/michaelscutari/protclust)
+[![Coverage](https://img.shields.io/badge/Coverage-85%25-green)](https://github.com/YOUR-USERNAME/protclust/actions)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python Version](https://img.shields.io/pypi/pyversions/protclust.svg)](https://pypi.org/project/protclust/)
 
