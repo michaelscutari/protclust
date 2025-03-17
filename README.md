@@ -190,7 +190,7 @@ If you use protclust in your research, please cite:
 
 ```bibtex
 @software{protclust,
-  author = {protclust Contributors},
+  author = {Michael Scutari},
   title = {protclust: Protein Sequence Clustering and ML Dataset Creation},
   url = {https://github.com/michaelscutari/protclust},
   version = {0.1.0},
