@@ -12,11 +12,11 @@ tape/
 build/
 mmseqspy.egg-info/
 mmseqspy/__pycache__/
+__pycache__
 
 # test artifacts
 .pytest_cache/
 .coverage
 htmlcov/
 coverage.xml
-__pycache__
 tests/__pycache__/
