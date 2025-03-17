@@ -1,16 +1,18 @@
 """Tests for the embeddings API functionality."""
 
-import pytest
-import numpy as np
-import pandas as pd
 import os
 import tempfile
-from mmseqspy.embeddings import (
-    register_embedder,
-    list_available_embedders,
+
+import numpy as np
+import pandas as pd
+import pytest
+
+from protclust.embeddings import (
+    BLOSUMEmbedder,
     embed_sequences,
     get_embeddings,
-    BLOSUMEmbedder,
+    list_available_embedders,
+    register_embedder,
 )
 
 
@@ -80,7 +82,7 @@ def test_list_available_embedders():
 
 def test_register_embedder():
     """Test registering a custom embedder."""
-    from mmseqspy.embeddings.baseline import BaseEmbedder
+    from protclust.embeddings.baseline import BaseEmbedder
 
     # Create a custom embedder
     class CustomEmbedder(BaseEmbedder):
@@ -179,9 +181,7 @@ def test_embed_sequences_hdf(sample_df, temp_hdf_path):
     assert first_ref.startswith("blosum62/")
 
     # Try to get embeddings
-    embeddings = get_embeddings(
-        result_df, embedding_type="blosum62", hdf_path=temp_hdf_path
-    )
+    embeddings = get_embeddings(result_df, embedding_type="blosum62", hdf_path=temp_hdf_path)
 
     # Check embeddings
     assert len(embeddings) == len(sample_df)
@@ -222,9 +222,7 @@ def test_embed_sequences_with_reduction_and_hdf(sample_df, temp_hdf_path):
     assert "blosum62_pca5_ref" in result_df.columns
 
     # Get embeddings
-    embeddings = get_embeddings(
-        result_df, embedding_type="blosum62_pca5", hdf_path=temp_hdf_path
-    )
+    embeddings = get_embeddings(result_df, embedding_type="blosum62_pca5", hdf_path=temp_hdf_path)
 
     # Check embeddings
     assert len(embeddings) == len(sample_df)
@@ -272,22 +270,19 @@ def test_get_embeddings_error_handling(sample_df):
 
 def test_convenience_embedding_functions(sample_df):
     """Test the convenience functions for different embedding types."""
-    from mmseqspy.embeddings import blosum62, blosum90, aac, property_embedding, onehot
+    from protclust.embeddings import aac, blosum62, blosum90, onehot, property_embedding
 
     # Test each convenience function
     assert "blosum62_embedding" in blosum62(sample_df, sequence_col="sequence").columns
     assert "blosum90_embedding" in blosum90(sample_df, sequence_col="sequence").columns
     assert "aac_embedding" in aac(sample_df, sequence_col="sequence").columns
-    assert (
-        "property_embedding"
-        in property_embedding(sample_df, sequence_col="sequence").columns
-    )
+    assert "property_embedding" in property_embedding(sample_df, sequence_col="sequence").columns
     assert "onehot_embedding" in onehot(sample_df, sequence_col="sequence").columns
 
 
 def test_register_embedder_validation():
     """Test validation when registering embedders with invalid classes."""
-    from mmseqspy.embeddings import register_embedder
+    from protclust.embeddings import register_embedder
 
     # Create a class that doesn't inherit from BaseEmbedder
     class InvalidEmbedder:
@@ -301,8 +296,9 @@ def test_register_embedder_validation():
 
 def test_embed_sequences_validation():
     """Test validation in embed_sequences function."""
-    from mmseqspy.embeddings import embed_sequences
     import pandas as pd
+
+    from protclust.embeddings import embed_sequences
 
     sample_df = pd.DataFrame({"sequence": ["ACDEF"]})
 
@@ -317,11 +313,12 @@ def test_embed_sequences_validation():
 
 def test_embed_sequences_with_nonuniform_embeddings(sample_df):
     """Test dimension reduction on non-uniform embeddings."""
-    from mmseqspy.embeddings import embed_sequences
     import numpy as np
 
+    from protclust.embeddings import embed_sequences
+
     # Create a custom embedder that returns non-uniform embeddings
-    from mmseqspy.embeddings.baseline import BaseEmbedder
+    from protclust.embeddings.baseline import BaseEmbedder
 
     class NonUniformEmbedder(BaseEmbedder):
         def generate(self, sequence, pooling="none", max_length=None):
@@ -331,7 +328,7 @@ def test_embed_sequences_with_nonuniform_embeddings(sample_df):
             return np.ones(5)
 
     # Register the custom embedder
-    from mmseqspy.embeddings import register_embedder
+    from protclust.embeddings import register_embedder
 
     register_embedder("non_uniform", NonUniformEmbedder)
 

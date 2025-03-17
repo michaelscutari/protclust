@@ -1,7 +1,8 @@
 """Tests for multi-way splitting functionality using realistic protein data."""
 
 import pytest
-from mmseqspy import train_test_val_cluster_split
+
+from protclust import train_test_val_cluster_split
 
 
 def test_train_val_test_integrity(realistic_protein_data, mmseqs_installed):
@@ -192,10 +193,7 @@ def test_multiway_split_invalid_params(realistic_protein_data, mmseqs_installed)
             test_size=0.2,
             val_size=0.1,
         )
-    assert (
-        "column" in str(excinfo.value).lower()
-        or "sequence" in str(excinfo.value).lower()
-    )
+    assert "column" in str(excinfo.value).lower() or "sequence" in str(excinfo.value).lower()
 
 
 def test_multiway_split_reproducibility(realistic_protein_data, mmseqs_installed):

@@ -1,11 +1,11 @@
-import pytest
 import numpy as np
+import pytest
 
 
 def test_real_esm_embedder():
     """Smoke test with the real ESM model."""
     try:
-        from mmseqspy.embeddings import ESMEmbedder
+        from protclust.embeddings import ESMEmbedder
     except ImportError:
         pytest.skip("ESM package not installed")
 
@@ -28,13 +28,11 @@ def test_real_esm_embedder():
 def test_real_prottrans_embedder():
     """Smoke test with the real ProtTrans model."""
     try:
-        from mmseqspy.embeddings import ProtTransEmbedder
+        from protclust.embeddings import ProtTransEmbedder
     except ImportError:
         pytest.skip("Transformers package not installed")
 
-    embedder = ProtTransEmbedder(
-        model_name="prot_bert_bfd"
-    )  # Or use a smaller model if available
+    embedder = ProtTransEmbedder(model_name="prot_bert_bfd")  # Or use a smaller model if available
     protein_seq = "MKTVRQERLKSIVRILERSKEPVSGAQLAEELSVSRQVIVQDIAYLRSLGYNIVATPRGYVLAGG"
     embedding = embedder.generate(protein_seq)
 
@@ -53,16 +51,14 @@ def test_real_prottrans_embedder():
 def test_real_esm_api_embedder():
     """Smoke test with the real ESM API."""
     try:
-        from mmseqspy.embeddings import ESMAPIEmbedder
+        from protclust.embeddings import ESMAPIEmbedder
     except ImportError:
         pytest.skip("Required packages not installed")
 
     # Note: This test requires an API key to be set
     try:
         embedder = ESMAPIEmbedder()
-        protein_seq = (
-            "MKTVRQERLKSIVRILERSKEPVSGAQLAEELSVSRQVIVQDIAYLRSLGYNIVATPRGYVLAGG"
-        )
+        protein_seq = "MKTVRQERLKSIVRILERSKEPVSGAQLAEELSVSRQVIVQDIAYLRSLGYNIVATPRGYVLAGG"
         embedding = embedder.generate(protein_seq)
 
         # Verify we get expected output shape
@@ -78,8 +74,9 @@ def test_real_esm_api_embedder():
 def test_real_reduction():
     """Smoke test for dimension reduction with real data."""
     try:
-        from mmseqspy.embeddings.reduction import reduce_dimensions
         import numpy as np
+
+        from protclust.embeddings.reduction import reduce_dimensions
     except ImportError:
         pytest.skip("Required packages not installed")
 
@@ -94,7 +91,7 @@ def test_real_reduction():
     assert not np.isnan(reduced_data).any(), "Reduced data contains NaN values"
 
     # Test applying the reducer to new data
-    from mmseqspy.embeddings.reduction import apply_reducer
+    from protclust.embeddings.reduction import apply_reducer
 
     new_data = np.random.random((5, 1024))
     transformed = apply_reducer(new_data, reducer)

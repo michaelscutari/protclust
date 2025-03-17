@@ -1,16 +1,18 @@
 """Tests for embedding storage functionality."""
 
-import pytest
-import numpy as np
-import pandas as pd
 import os
 import tempfile
-from mmseqspy.embeddings.storage import (
-    store_embeddings_in_df,
-    store_embeddings_in_hdf,
+
+import numpy as np
+import pandas as pd
+import pytest
+
+from protclust.embeddings.storage import (
     get_embeddings_from_df,
     get_embeddings_from_hdf,
     list_embeddings_in_hdf,
+    store_embeddings_in_df,
+    store_embeddings_in_hdf,
 )
 
 
@@ -54,9 +56,7 @@ def test_store_embeddings_in_df(sample_df, sample_embeddings):
 
     # Check that shape column was added
     assert f"{embedding_col}_shape" in result_df.columns
-    assert result_df[f"{embedding_col}_shape"].iloc[0] == str(
-        sample_embeddings[0].shape
-    )
+    assert result_df[f"{embedding_col}_shape"].iloc[0] == str(sample_embeddings[0].shape)
 
 
 def test_store_and_get_from_hdf(sample_embeddings, temp_hdf_path):
@@ -124,7 +124,8 @@ def test_get_embeddings_from_df(sample_df, sample_embeddings):
 def test_get_embeddings_errors():
     """Test error handling in embedding storage functions."""
     import pandas as pd
-    from mmseqspy.embeddings.storage import get_embeddings_from_df
+
+    from protclust.embeddings.storage import get_embeddings_from_df
 
     # Test missing column
     df = pd.DataFrame({"id": [1, 2, 3]})
@@ -134,8 +135,9 @@ def test_get_embeddings_errors():
 
 def test_list_embeddings_nonexistent_file():
     """Test listing embeddings from a non-existent HDF file."""
-    from mmseqspy.embeddings.storage import list_embeddings_in_hdf
     import tempfile
+
+    from protclust.embeddings.storage import list_embeddings_in_hdf
 
     # Generate a file path that doesn't exist
     with tempfile.NamedTemporaryFile() as f:

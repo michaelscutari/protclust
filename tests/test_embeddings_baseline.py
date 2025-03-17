@@ -1,14 +1,15 @@
 """Tests for baseline embedders."""
 
-import pytest
 import numpy as np
-from mmseqspy.embeddings import (
-    BLOSUMEmbedder,
+import pytest
+
+from protclust.embeddings import (
     AACompositionEmbedder,
-    PropertyEmbedder,
+    BLOSUMEmbedder,
     OneHotEmbedder,
+    PropertyEmbedder,
 )
-from mmseqspy.embeddings.matrices import PROPERTY_SCALES
+from protclust.embeddings.matrices import PROPERTY_SCALES
 
 
 def test_blosum_embedder():
@@ -178,7 +179,7 @@ def test_embedding_with_edge_cases():
 
 def test_embedder_edge_cases():
     """Test edge cases and error handling in embedders."""
-    from mmseqspy.embeddings import BLOSUMEmbedder, AACompositionEmbedder
+    from protclust.embeddings import AACompositionEmbedder, BLOSUMEmbedder
 
     # Test with invalid pooling method
     embedder = BLOSUMEmbedder()
@@ -193,7 +194,7 @@ def test_embedder_edge_cases():
 
 def test_property_embedder_unknown_property():
     """Test PropertyEmbedder with unknown property."""
-    from mmseqspy.embeddings import PropertyEmbedder
+    from protclust.embeddings import PropertyEmbedder
 
     with pytest.raises(ValueError, match="Unknown property"):
         PropertyEmbedder(properties=["not_a_real_property"])
@@ -201,7 +202,7 @@ def test_property_embedder_unknown_property():
 
 def test_blosum_embedder_unknown_matrix():
     """Test BLOSUMEmbedder with unknown matrix type."""
-    from mmseqspy.embeddings import BLOSUMEmbedder
+    from protclust.embeddings import BLOSUMEmbedder
 
     with pytest.raises(ValueError, match="Unknown matrix type"):
         BLOSUMEmbedder(matrix_type="BLOSUM_INVALID")

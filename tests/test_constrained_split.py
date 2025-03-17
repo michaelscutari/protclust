@@ -1,7 +1,8 @@
 """Tests for constrained splitting functionality using realistic protein data."""
 
 import pytest
-from mmseqspy import cluster, constrained_split
+
+from protclust import cluster, constrained_split
 
 
 def test_constrained_split_basic(realistic_protein_data, mmseqs_installed):
@@ -172,12 +173,8 @@ def test_constrained_split_property_balance(realistic_protein_data, mmseqs_insta
     # Calculate property means for each cluster
     cluster_props = {}
     for cluster_id in clustered_df["representative_sequence"].unique():
-        cluster_members = clustered_df[
-            clustered_df["representative_sequence"] == cluster_id
-        ]
-        cluster_props[cluster_id] = {
-            prop: cluster_members[prop].mean() for prop in properties
-        }
+        cluster_members = clustered_df[clustered_df["representative_sequence"] == cluster_id]
+        cluster_props[cluster_id] = {prop: cluster_members[prop].mean() for prop in properties}
 
     # Force clusters with low and high values for each property
     # This ensures diversity in the forced train and test sets
@@ -221,9 +218,7 @@ def test_constrained_split_property_balance(realistic_protein_data, mmseqs_insta
         assert train_coverage >= 0.5, (
             f"Train set covers only {train_coverage:.2%} of the {prop} range"
         )
-        assert test_coverage >= 0.5, (
-            f"Test set covers only {test_coverage:.2%} of the {prop} range"
-        )
+        assert test_coverage >= 0.5, f"Test set covers only {test_coverage:.2%} of the {prop} range"
 
 
 def test_constrained_split_extreme_case(realistic_protein_data, mmseqs_installed):
@@ -265,9 +260,5 @@ def test_constrained_split_extreme_case(realistic_protein_data, mmseqs_installed
     # Verify that majority of clusters are in train set as forced
     train_clusters = set(train_df["representative_sequence"])
 
-    forced_pct = len(set(force_train_clusters) & train_clusters) / len(
-        force_train_clusters
-    )
-    assert forced_pct == 1.0, (
-        f"Only {forced_pct:.2%} of forced train clusters are in train set"
-    )
+    forced_pct = len(set(force_train_clusters) & train_clusters) / len(force_train_clusters)
+    assert forced_pct == 1.0, f"Only {forced_pct:.2%} of forced train clusters are in train set"

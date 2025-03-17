@@ -1,14 +1,16 @@
-import pytest
-import numpy as np
 import logging
-from mmseqspy import (
+
+import numpy as np
+import pytest
+
+from protclust import (
     cluster,
+    cluster_kfold,
+    constrained_split,
+    milp_split,
     split,
     train_test_cluster_split,
     train_test_val_cluster_split,
-    constrained_split,
-    cluster_kfold,
-    milp_split,
 )
 
 logger = logging.getLogger(__name__)
@@ -110,9 +112,7 @@ def test_constrained_split(fluorescence_data, mmseqs_installed):
     df = fluorescence_data.copy()
 
     # First cluster the data
-    clustered_df = cluster(
-        df, sequence_col="sequence", id_col="id", min_seq_id=0.99, coverage=0.8
-    )
+    clustered_df = cluster(df, sequence_col="sequence", id_col="id", min_seq_id=0.99, coverage=0.8)
 
     # Force specific IDs to train and test sets
     force_train_ids = [clustered_df.loc[0, "id"]]
@@ -182,9 +182,7 @@ def test_milp_split(fluorescence_data, mmseqs_installed):
     df = fluorescence_data.copy()
 
     # First cluster the data
-    clustered_df = cluster(
-        df, sequence_col="sequence", id_col="id", min_seq_id=0.99, coverage=0.8
-    )
+    clustered_df = cluster(df, sequence_col="sequence", id_col="id", min_seq_id=0.99, coverage=0.8)
 
     # Run MILP split with distribution similarity, balancing fluorescence
     train_df, test_df = milp_split(
@@ -229,9 +227,7 @@ def test_milp_split(fluorescence_data, mmseqs_installed):
 
     # Log MILP split distribution results
     logger.info("MILP split distribution statistics for fluorescence:")
-    logger.info(
-        f"  Mean: train={train_mean:.4f}, test={test_mean:.4f}, overall={overall_mean:.4f}"
-    )
+    logger.info(f"  Mean: train={train_mean:.4f}, test={test_mean:.4f}, overall={overall_mean:.4f}")
     logger.info(
         f"  Variance: train={train_var:.4f}, test={test_var:.4f}, overall={overall_var:.4f}"
     )
@@ -277,9 +273,9 @@ def test_milp_split(fluorescence_data, mmseqs_installed):
     milp_range_coverage = (train_max - train_min + test_max - test_min) / (
         2 * (overall_max - overall_min)
     )
-    naive_range_coverage = (
-        naive_train_max - naive_train_min + naive_test_max - naive_test_min
-    ) / (2 * (overall_max - overall_min))
+    naive_range_coverage = (naive_train_max - naive_train_min + naive_test_max - naive_test_min) / (
+        2 * (overall_max - overall_min)
+    )
 
     logger.info("Imbalance metrics:")
     logger.info(
@@ -332,9 +328,7 @@ def test_enhanced_milp_split(fluorescence_data, protein_data=None):
                 {
                     "id": f"protein_{i}",
                     "primary": "".join(
-                        np.random.choice(
-                            list("ACDEFGHIKLMNPQRSTVWY"), size=protein_length
-                        )
+                        np.random.choice(list("ACDEFGHIKLMNPQRSTVWY"), size=protein_length)
                     ),
                     "protein_length": protein_length,
                     "class_label": np.random.randint(0, 5),
@@ -347,8 +341,7 @@ def test_enhanced_milp_split(fluorescence_data, protein_data=None):
                         for _ in range(protein_length)
                     ],
                     "solvent_accessibility": [
-                        [np.random.random(), np.random.random()]
-                        for _ in range(protein_length)
+                        [np.random.random(), np.random.random()] for _ in range(protein_length)
                     ],
                 }
             )
@@ -400,12 +393,8 @@ def test_enhanced_milp_split(fluorescence_data, protein_data=None):
         df = fluorescence_data.copy()
 
         # Add some synthetic categorical columns
-        df["sequence_type"] = np.random.choice(
-            ["wild_type", "mutant", "synthetic"], size=len(df)
-        )
-        df["expression_level"] = np.random.choice(
-            ["low", "medium", "high"], size=len(df)
-        )
+        df["sequence_type"] = np.random.choice(["wild_type", "mutant", "synthetic"], size=len(df))
+        df["expression_level"] = np.random.choice(["low", "medium", "high"], size=len(df))
 
         # Add some synthetic residue-level data
         df["residue_hydrophobicity"] = [
@@ -491,9 +480,7 @@ def test_enhanced_milp_split(fluorescence_data, protein_data=None):
 
         naive_train_mean = naive_train["fluorescence"].mean()
         naive_test_mean = naive_test["fluorescence"].mean()
-        naive_mean_diff_pct = (
-            abs(naive_train_mean - naive_test_mean) / overall_mean * 100
-        )
+        naive_mean_diff_pct = abs(naive_train_mean - naive_test_mean) / overall_mean * 100
 
         logger.info(f"Naive split mean difference: {naive_mean_diff_pct:.2f}%")
 
@@ -507,7 +494,8 @@ def test_enhanced_milp_split(fluorescence_data, protein_data=None):
 def test_empty_dataset_handling():
     """Test splitting functions with empty datasets."""
     import pandas as pd
-    from mmseqspy import split
+
+    from protclust import split
 
     # Create empty DataFrame with the required columns
     empty_df = pd.DataFrame(columns=["representative_sequence", "id"])
@@ -519,7 +507,7 @@ def test_empty_dataset_handling():
 
 def test_embedder_edge_cases():
     """Test edge cases and error handling in embedders."""
-    from mmseqspy.embeddings import BLOSUMEmbedder
+    from protclust.embeddings import BLOSUMEmbedder
 
     # Test with invalid pooling method
     embedder = BLOSUMEmbedder()
@@ -536,8 +524,9 @@ def test_embedder_edge_cases():
 
 def test_milp_split_categorical_handling(fluorescence_data):
     """Test MILP splitting with categorical variables."""
-    from mmseqspy import milp_split
     import numpy as np
+
+    from protclust import milp_split
 
     df = fluorescence_data.head(20).copy()
 

@@ -1,10 +1,12 @@
-"""Tests for error handling and robustness of MMseqsPy."""
+"""Tests for error handling and robustness of protclust."""
 
-import pytest
-import pandas as pd
 import shutil
 import subprocess
-from mmseqspy import clean, cluster, split
+
+import pandas as pd
+import pytest
+
+from protclust import clean, cluster, split
 
 
 def test_invalid_sequence_input(challenging_protein_data):
@@ -94,10 +96,7 @@ def test_mmseqs_missing(realistic_protein_data, monkeypatch):
     with pytest.raises(Exception) as excinfo:
         cluster(df, sequence_col="sequence")
 
-    assert (
-        "mmseqs" in str(excinfo.value).lower()
-        or "not found" in str(excinfo.value).lower()
-    )
+    assert "mmseqs" in str(excinfo.value).lower() or "not found" in str(excinfo.value).lower()
 
 
 def test_mmseqs_error_handling(realistic_protein_data, monkeypatch, mmseqs_installed):
@@ -130,9 +129,7 @@ def test_empty_dataset_handling():
     if not empty_df.empty:  # Skip if setup created a non-empty DataFrame
         try:
             clustered_df = cluster(empty_df, sequence_col="sequence", id_col="id")
-            assert len(clustered_df) == 0, (
-                "Empty DataFrame after clustering should still be empty"
-            )
+            assert len(clustered_df) == 0, "Empty DataFrame after clustering should still be empty"
         except Exception as e:
             # If it errors, make sure it's a sensible error
             assert any(
@@ -169,9 +166,7 @@ def test_edge_case_sequence_lengths(challenging_protein_data, mmseqs_installed):
             min_seq_id=0.9,
             coverage=0.5,  # Lower coverage for variable length sequences
         )
-        assert len(clustered_df) == len(df), (
-            "All sequences should be preserved in clustering"
-        )
+        assert len(clustered_df) == len(df), "All sequences should be preserved in clustering"
         assert "representative_sequence" in clustered_df.columns
 
         # Verify that both short and long sequences have been assigned clusters
@@ -230,15 +225,15 @@ def test_multithread_consistency(realistic_protein_data, mmseqs_installed):
     # We compare cluster counts rather than exact assignments,
     # since thread count might affect the exact representative sequence chosen
     assert (
-        result1["representative_sequence"].nunique()
-        == result2["representative_sequence"].nunique()
+        result1["representative_sequence"].nunique() == result2["representative_sequence"].nunique()
     ), "Different thread count produced different number of clusters"
 
 
 def test_check_random_state_errors():
     """Test error handling in check_random_state with invalid inputs."""
-    from mmseqspy.utils import check_random_state
     import numpy as np
+
+    from protclust.utils import check_random_state
 
     # Test with invalid random_state type
     with pytest.raises(ValueError):
@@ -247,15 +242,14 @@ def test_check_random_state_errors():
     # Verify it works with valid types
     assert isinstance(check_random_state(None), np.random.RandomState)
     assert isinstance(check_random_state(42), np.random.RandomState)
-    assert isinstance(
-        check_random_state(np.random.RandomState(42)), np.random.RandomState
-    )
+    assert isinstance(check_random_state(np.random.RandomState(42)), np.random.RandomState)
 
 
 def test_mmseqs_not_found(monkeypatch):
     """Test error handling when mmseqs is not found."""
     import shutil
-    from mmseqspy.utils import _check_mmseqs
+
+    from protclust.utils import _check_mmseqs
 
     # Mock shutil.which to simulate mmseqs not being found
     def mock_which(cmd):

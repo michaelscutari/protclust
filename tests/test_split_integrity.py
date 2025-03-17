@@ -1,6 +1,6 @@
 """Tests for split integrity using synthetic data with predictable patterns."""
 
-from mmseqspy import cluster, split, train_test_cluster_split
+from protclust import cluster, split, train_test_cluster_split
 
 
 def test_basic_split_integrity(synthetic_cluster_data, mmseqs_installed):
@@ -75,12 +75,8 @@ def test_split_reproducibility(synthetic_cluster_data, mmseqs_installed):
     )
 
     # Check that the splits are identical
-    assert set(train1["id"]) == set(train2["id"]), (
-        "Train sets differ despite same random seed"
-    )
-    assert set(test1["id"]) == set(test2["id"]), (
-        "Test sets differ despite same random seed"
-    )
+    assert set(train1["id"]) == set(train2["id"]), "Train sets differ despite same random seed"
+    assert set(test1["id"]) == set(test2["id"]), "Test sets differ despite same random seed"
 
     # Perform another split with a different seed
     train3, test3 = split(
@@ -94,9 +90,7 @@ def test_split_reproducibility(synthetic_cluster_data, mmseqs_installed):
     assert set(train1["id"]) != set(train3["id"]), (
         "Train sets are identical despite different seeds"
     )
-    assert set(test1["id"]) != set(test3["id"]), (
-        "Test sets are identical despite different seeds"
-    )
+    assert set(test1["id"]) != set(test3["id"]), "Test sets are identical despite different seeds"
 
 
 def test_combined_cluster_split(synthetic_cluster_data, mmseqs_installed):

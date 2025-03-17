@@ -1,7 +1,8 @@
 """Tests for cluster-aware k-fold cross-validation."""
 
 import pandas as pd
-from mmseqspy import cluster_kfold
+
+from protclust import cluster_kfold
 
 
 def test_kfold_different_k_values(realistic_protein_data, mmseqs_installed):
@@ -105,12 +106,8 @@ def test_kfold_property_distribution(realistic_protein_data, mmseqs_installed):
         test_dev = abs(test_mean - overall_mean) / overall_std
 
         # Neither set should deviate too much (over 2 std devs would be unusual)
-        assert train_dev < 1.5, (
-            f"Fold {i} train set deviates too much: {train_dev:.2f} std devs"
-        )
-        assert test_dev < 1.5, (
-            f"Fold {i} test set deviates too much: {test_dev:.2f} std devs"
-        )
+        assert train_dev < 1.5, f"Fold {i} train set deviates too much: {train_dev:.2f} std devs"
+        assert test_dev < 1.5, f"Fold {i} test set deviates too much: {test_dev:.2f} std devs"
 
 
 def test_kfold_reproducibility(realistic_protein_data, mmseqs_installed):

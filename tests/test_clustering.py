@@ -1,4 +1,4 @@
-from mmseqspy import cluster
+from protclust import cluster
 
 
 def test_cluster_sequences(fluorescence_data, mmseqs_installed):
@@ -26,15 +26,14 @@ def test_cluster_sequences(fluorescence_data, mmseqs_installed):
     assert 1 <= n_clusters <= len(df)
 
     # Check that all representative_sequence values exist in the id column
-    assert set(clustered_df["representative_sequence"]).issubset(
-        set(clustered_df["id"])
-    )
+    assert set(clustered_df["representative_sequence"]).issubset(set(clustered_df["id"]))
 
 
 def test_cluster_debug_logging(fluorescence_data, mmseqs_installed, monkeypatch):
     """Test clustering with debug logging to cover verbose output paths."""
-    from mmseqspy.logger import logger
     import logging
+
+    from protclust.logger import logger
 
     # Store original level and set up logging capture
     original_level = logger.level
@@ -56,8 +55,9 @@ def test_cluster_debug_logging(fluorescence_data, mmseqs_installed, monkeypatch)
 def test_cluster_with_debug_output(fluorescence_data, mmseqs_installed, caplog):
     """Test clustering with debug output enabled."""
     import logging
-    from mmseqspy.logger import logger
-    from mmseqspy import cluster
+
+    from protclust import cluster
+    from protclust.logger import logger
 
     # Set debug level temporarily
     original_level = logger.level

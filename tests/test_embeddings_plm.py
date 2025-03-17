@@ -1,11 +1,12 @@
 """Tests for protein embedders."""
 
-import pytest
-import torch
+import json
 import sys
 import tempfile
-import json
 from pathlib import Path
+
+import pytest
+import torch
 
 
 # Set up mocks for external dependencies
@@ -102,9 +103,7 @@ def mock_transformers(monkeypatch):
         def __call__(self, **kwargs):
             batch_size = kwargs["input_ids"].shape[0]
             seq_len = kwargs["input_ids"].shape[1]
-            hidden_states = tuple(
-                torch.ones((batch_size, seq_len, 16)) for _ in range(6)
-            )
+            hidden_states = tuple(torch.ones((batch_size, seq_len, 16)) for _ in range(6))
             return type(
                 "obj",
                 (object,),
@@ -222,7 +221,7 @@ def mock_esm_api(monkeypatch):
     # Use autouse=True to apply this fixture automatically to all tests that need it
     # Mock at ESMAPIEmbedder.make_api_request level instead of the requests module
     monkeypatch.setattr(
-        "mmseqspy.embeddings.remote.ESMAPIEmbedder._make_request",
+        "protclust.embeddings.remote.ESMAPIEmbedder._make_request",
         lambda self, url, data: MockResponse(),
     )
 
@@ -236,7 +235,7 @@ def temp_cache_dir():
 
 def test_esm_embedder(mock_esm):
     """Test the ESM embedder basic functionality."""
-    from mmseqspy.embeddings import ESMEmbedder
+    from protclust.embeddings import ESMEmbedder
 
     # Initialize embedder
     embedder = ESMEmbedder(model_name="esm2_t6_8M_UR50D")
@@ -263,7 +262,7 @@ def test_esm_embedder(mock_esm):
 
 def test_prottrans_embedder(mock_transformers):
     """Test the ProtTrans embedder basic functionality."""
-    from mmseqspy.embeddings import ProtTransEmbedder
+    from protclust.embeddings import ProtTransEmbedder
 
     # Test BERT model
     bert_embedder = ProtTransEmbedder(model_name="bert")
@@ -288,7 +287,7 @@ def test_prottrans_embedder(mock_transformers):
 @pytest.mark.skip("Skipping due to requests/charset_normalizer circular import issue")
 def test_esm_api_embedder(mock_esm_api, temp_cache_dir):
     """Test the ESM API embedder basic functionality."""
-    from mmseqspy.embeddings.remote import ESMAPIEmbedder
+    from protclust.embeddings.remote import ESMAPIEmbedder
 
     # Initialize embedder with cache
     embedder = ESMAPIEmbedder(cache_dir=temp_cache_dir)

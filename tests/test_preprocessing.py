@@ -1,4 +1,4 @@
-from mmseqspy import clean
+from protclust import clean
 
 
 def test_clean_valid_sequences(fluorescence_data):
@@ -8,21 +8,15 @@ def test_clean_valid_sequences(fluorescence_data):
 
     # Add some invalid sequences
     df.loc[0, "sequence"] = df.loc[0, "sequence"] + "X"  # Invalid amino acid
-    df.loc[1, "sequence"] = df.loc[
-        1, "sequence"
-    ].lower()  # Should be converted to uppercase
+    df.loc[1, "sequence"] = df.loc[1, "sequence"].lower()  # Should be converted to uppercase
     df.loc[2, "sequence"] = None  # Null value
 
     # Run cleaning
     cleaned_df = clean(df, sequence_col="sequence")
 
     # Check results
-    assert (
-        len(cleaned_df) == len(df) - 2
-    )  # Should remove the invalid and null sequences
-    assert (
-        cleaned_df["sequence"].str.isupper().all()
-    )  # All sequences should be uppercase
+    assert len(cleaned_df) == len(df) - 2  # Should remove the invalid and null sequences
+    assert cleaned_df["sequence"].str.isupper().all()  # All sequences should be uppercase
     assert cleaned_df["sequence"].notna().all()  # No null values
 
     # Check that only valid amino acids remain

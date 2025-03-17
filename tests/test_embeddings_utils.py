@@ -1,12 +1,13 @@
 """Tests for embedding utility functions."""
 
-import pytest
 import numpy as np
-from mmseqspy.embeddings.utils import (
-    pad_sequences,
-    normalize_embeddings,
+import pytest
+
+from protclust.embeddings.utils import (
     compare_embeddings,
     concat_embeddings,
+    normalize_embeddings,
+    pad_sequences,
 )
 
 
@@ -117,8 +118,9 @@ def test_concat_embeddings():
 
 def test_normalize_embeddings_zero_range():
     """Test normalize_embeddings with arrays that have zero range."""
-    from mmseqspy.embeddings.utils import normalize_embeddings
     import numpy as np
+
+    from protclust.embeddings.utils import normalize_embeddings
 
     # Create an array with zero range in one dimension
     embeddings = np.array([[1, 2, 3], [1, 4, 6], [1, 8, 9]])
@@ -132,8 +134,9 @@ def test_normalize_embeddings_zero_range():
 
 def test_compare_embeddings_zero_norm():
     """Test compare_embeddings with zero-norm vectors."""
-    from mmseqspy.embeddings.utils import compare_embeddings
     import numpy as np
+
+    from protclust.embeddings.utils import compare_embeddings
 
     # Create a zero vector
     zero_emb = np.zeros(5)

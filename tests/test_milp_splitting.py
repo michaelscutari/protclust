@@ -1,7 +1,8 @@
 """Tests for MILP-based splitting functionality with detailed property balance verification."""
 
 import numpy as np
-from mmseqspy import cluster, milp_split
+
+from protclust import cluster, milp_split
 
 
 def test_milp_numeric_properties(realistic_protein_data, mmseqs_installed):
@@ -32,7 +33,7 @@ def test_milp_numeric_properties(realistic_protein_data, mmseqs_installed):
     )
 
     # Run a baseline split for comparison
-    from mmseqspy import split
+    from protclust import split
 
     baseline_train, baseline_test = split(
         clustered_df,
@@ -56,9 +57,7 @@ def test_milp_numeric_properties(realistic_protein_data, mmseqs_installed):
         # Baseline split balance
         baseline_train_mean = baseline_train[prop].mean()
         baseline_test_mean = baseline_test[prop].mean()
-        baseline_imbalance = (
-            abs(baseline_train_mean - baseline_test_mean) / overall_mean
-        )
+        baseline_imbalance = abs(baseline_train_mean - baseline_test_mean) / overall_mean
         baseline_imbalances.append(baseline_imbalance)
 
         # MILP should achieve reasonable balance
@@ -149,9 +148,7 @@ def test_milp_variance_balance(realistic_protein_data, mmseqs_installed):
             family_variances[family] = 2.0  # High variance
 
     df["variable_property"] = df.apply(
-        lambda row: np.random.normal(
-            row["family_id"], family_variances[row["family_id"]]
-        ),
+        lambda row: np.random.normal(row["family_id"], family_variances[row["family_id"]]),
         axis=1,
     )
 
@@ -180,13 +177,10 @@ def test_milp_variance_balance(realistic_protein_data, mmseqs_installed):
     var_diff_ratio = abs(train_var - test_var) / overall_var
 
     # Calculate range metrics
-    train_range = (
-        train_df["variable_property"].max() - train_df["variable_property"].min()
-    )
+    train_range = train_df["variable_property"].max() - train_df["variable_property"].min()
     test_range = test_df["variable_property"].max() - test_df["variable_property"].min()
     overall_range = (
-        clustered_df["variable_property"].max()
-        - clustered_df["variable_property"].min()
+        clustered_df["variable_property"].max() - clustered_df["variable_property"].min()
     )
 
     # Calculate range coverage
@@ -194,9 +188,7 @@ def test_milp_variance_balance(realistic_protein_data, mmseqs_installed):
     test_coverage = test_range / overall_range
 
     # Variance should be reasonably balanced
-    assert var_diff_ratio < 0.4, (
-        f"Variance poorly balanced: diff ratio = {var_diff_ratio:.2f}"
-    )
+    assert var_diff_ratio < 0.4, f"Variance poorly balanced: diff ratio = {var_diff_ratio:.2f}"
 
     # Both splits should cover a substantial portion of the range
     assert train_coverage > 0.7, f"Train set covers only {train_coverage:.2f} of range"
@@ -243,18 +235,13 @@ def test_milp_time_limit(realistic_protein_data, mmseqs_installed):
     # Longer time should lead to better balancing or the same result
     # Calculate imbalance for short run
     short_imb = (
-        abs(
-            train_short["molecular_weight"].mean()
-            - test_short["molecular_weight"].mean()
-        )
+        abs(train_short["molecular_weight"].mean() - test_short["molecular_weight"].mean())
         / clustered_df["molecular_weight"].mean()
     )
 
     # Calculate imbalance for long run
     long_imb = (
-        abs(
-            train_long["molecular_weight"].mean() - test_long["molecular_weight"].mean()
-        )
+        abs(train_long["molecular_weight"].mean() - test_long["molecular_weight"].mean())
         / clustered_df["molecular_weight"].mean()
     )
 

@@ -1,6 +1,6 @@
 """Tests for clustering accuracy using synthetic data with predictable patterns."""
 
-from mmseqspy import cluster
+from protclust import cluster
 
 
 def test_cluster_basic_functionality(synthetic_cluster_data, mmseqs_installed):
@@ -128,9 +128,7 @@ def test_edge_case_clustering(edge_case_data, mmseqs_installed):
     ].tolist()
 
     # Both identical sequences should have the same representative
-    assert identical_reps[0] == identical_reps[1], (
-        "Identical sequences were not clustered together"
-    )
+    assert identical_reps[0] == identical_reps[1], "Identical sequences were not clustered together"
 
     # 2. For near-identical sequences, let's verify the sequences themselves
     near_identical_ids = df[df["case_type"] == "near_identical"]["id"].tolist()
@@ -138,9 +136,7 @@ def test_edge_case_clustering(edge_case_data, mmseqs_installed):
 
     # Calculate the actual identity between these sequences
     total_positions = len(near_ident_seqs[0])
-    matching_positions = sum(
-        a == b for a, b in zip(near_ident_seqs[0], near_ident_seqs[1])
-    )
+    matching_positions = sum(a == b for a, b in zip(near_ident_seqs[0], near_ident_seqs[1]))
     actual_identity = matching_positions / total_positions
 
     # Verify that they are indeed near-identical (at least 95% identity)
@@ -150,9 +146,7 @@ def test_edge_case_clustering(edge_case_data, mmseqs_installed):
 
     # 3. Test with extremely high identity threshold to verify different clusters
     high_threshold_df = cluster(
-        df.loc[
-            df["id"].isin(near_identical_ids)
-        ],  # Just use the near-identical sequences
+        df.loc[df["id"].isin(near_identical_ids)],  # Just use the near-identical sequences
         sequence_col="sequence",
         id_col="id",
         min_seq_id=0.99,  # 99% threshold

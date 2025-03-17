@@ -1,10 +1,13 @@
-"""Tests for performance and scaling of MMseqsPy functions."""
+"""Tests for performance and scaling of protclust functions."""
 
-import pytest
-import pandas as pd
-import time
 import random
-from mmseqspy import cluster, split, train_test_cluster_split
+import time
+
+import pandas as pd
+import pytest
+
+from protclust import cluster, split, train_test_cluster_split
+
 from .test_utils import create_protein_family_dataset
 
 
@@ -73,7 +76,7 @@ def test_splitting_performance():
 
     # Skip importing and timing MILP split if it fails due to missing dependencies
     try:
-        from mmseqspy import milp_split
+        from protclust import milp_split
 
         # Time MILP split with minimal properties
         start_time = time.time()
@@ -95,9 +98,7 @@ def test_splitting_performance():
 
         # But it shouldn't be unreasonably slow
         # Use a minimum comparison time to handle cases where basic split is very fast
-        minimum_compare_time = max(
-            basic_split_time, 0.05
-        )  # At least 50ms for baseline comparison
+        minimum_compare_time = max(basic_split_time, 0.05)  # At least 50ms for baseline comparison
         assert milp_split_time < minimum_compare_time * 40, (
             f"MILP split too slow: {milp_split_time:.2f}s vs {basic_split_time:.2f}s"
         )

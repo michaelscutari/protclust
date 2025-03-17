@@ -1,14 +1,16 @@
 """Tests for embedding dimension reduction functionality."""
 
-import pytest
-import numpy as np
 import os
 import tempfile
-from mmseqspy.embeddings.reduction import (
-    reduce_dimensions,
+
+import numpy as np
+import pytest
+
+from protclust.embeddings.reduction import (
     apply_reducer,
-    save_reducer,
     load_reducer,
+    reduce_dimensions,
+    save_reducer,
 )
 
 
@@ -33,9 +35,7 @@ def test_reduce_dimensions(sample_embeddings):
     """Test dimension reduction."""
     # Reduce dimensions with PCA
     n_components = 5
-    reduced, reducer = reduce_dimensions(
-        sample_embeddings, method="pca", n_components=n_components
-    )
+    reduced, reducer = reduce_dimensions(sample_embeddings, method="pca", n_components=n_components)
 
     # Check shape of reduced embeddings
     assert reduced.shape == (sample_embeddings.shape[0], n_components)
@@ -54,9 +54,7 @@ def test_apply_reducer(sample_embeddings):
     """Test applying a fitted reducer to new data."""
     # First, fit a reducer
     n_components = 5
-    _, reducer = reduce_dimensions(
-        sample_embeddings, method="pca", n_components=n_components
-    )
+    _, reducer = reduce_dimensions(sample_embeddings, method="pca", n_components=n_components)
 
     # Create new embeddings
     new_embeddings = np.random.random((5, 100))  # 5 new samples

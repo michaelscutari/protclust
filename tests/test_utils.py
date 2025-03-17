@@ -1,9 +1,10 @@
-"""Utilities for generating synthetic test data for MMseqsPy."""
+"""Utilities for generating synthetic test data for protclust."""
 
 import random
-import pandas as pd
-import numpy as np
 from typing import List, Optional
+
+import numpy as np
+import pandas as pd
 
 # Standard amino acids used in protein sequences
 AMINO_ACIDS = "ACDEFGHIKLMNPQRSTVWY"
@@ -156,13 +157,9 @@ def create_cluster_dataset(
         DataFrame with sequence data organized in predictable clusters
     """
     if not 0 <= within_identity <= 1:
-        raise ValueError(
-            f"within_identity must be between 0 and 1, got {within_identity}"
-        )
+        raise ValueError(f"within_identity must be between 0 and 1, got {within_identity}")
     if not 0 <= between_identity <= 1:
-        raise ValueError(
-            f"between_identity must be between 0 and 1, got {between_identity}"
-        )
+        raise ValueError(f"between_identity must be between 0 and 1, got {between_identity}")
     if within_identity <= between_identity:
         raise ValueError(
             f"within_identity ({within_identity}) must be greater than "
@@ -216,9 +213,7 @@ def create_cluster_dataset(
                 if realistic
                 else len(sequence) * 100
             )
-            isoelectric_point = (
-                random.normalvariate(7.0, 1.5) if realistic else cluster_idx + 5
-            )
+            isoelectric_point = random.normalvariate(7.0, 1.5) if realistic else cluster_idx + 5
             hydrophobicity = (
                 random.normalvariate(cluster_idx - 2, 0.5) if realistic else cluster_idx
             )
@@ -271,13 +266,9 @@ def create_protein_family_dataset(
         DataFrame with protein sequence data organized in protein families
     """
     if not 0 <= within_identity <= 1:
-        raise ValueError(
-            f"within_identity must be between 0 and 1, got {within_identity}"
-        )
+        raise ValueError(f"within_identity must be between 0 and 1, got {within_identity}")
     if not 0 <= between_identity <= 1:
-        raise ValueError(
-            f"between_identity must be between 0 and 1, got {between_identity}"
-        )
+        raise ValueError(f"between_identity must be between 0 and 1, got {between_identity}")
     if within_identity <= between_identity:
         raise ValueError(
             f"within_identity ({within_identity}) must be greater than "
@@ -313,17 +304,13 @@ def create_protein_family_dataset(
             else:
                 # Create variant with high similarity to family seed
                 # Add slight variation to identity to make it more realistic
-                variation = random.uniform(
-                    -0.05, 0.0
-                )  # Slightly reduce identity for variants
+                variation = random.uniform(-0.05, 0.0)  # Slightly reduce identity for variants
                 identity = max(0.7, within_identity + variation)
 
                 sequence = create_sequence_variant(
                     family_seed,
                     identity,
-                    seed=None
-                    if seed is None
-                    else seed + family_idx * 100 + protein_idx,
+                    seed=None if seed is None else seed + family_idx * 100 + protein_idx,
                     realistic=True,
                 )
                 true_identity = identity
@@ -332,20 +319,12 @@ def create_protein_family_dataset(
             molecular_weight = len(sequence) * 110 + random.normalvariate(
                 0, 500
             )  # ~110 Da per residue
-            isoelectric_point = random.normalvariate(
-                7.0, 1.5
-            )  # Most proteins around pH 7
-            hydrophobicity = random.normalvariate(
-                family_idx - 2, 0.5
-            )  # Family-specific property
+            isoelectric_point = random.normalvariate(7.0, 1.5)  # Most proteins around pH 7
+            hydrophobicity = random.normalvariate(family_idx - 2, 0.5)  # Family-specific property
 
             # Add some categorical features
-            domains = random.choice(
-                ["kinase", "protease", "transferase", "transporter", "channel"]
-            )
-            organism = random.choice(
-                ["human", "mouse", "yeast", "e_coli", "arabidopsis"]
-            )
+            domains = random.choice(["kinase", "protease", "transferase", "transporter", "channel"])
+            organism = random.choice(["human", "mouse", "yeast", "e_coli", "arabidopsis"])
 
             # Add entry to dataset
             data.append(
@@ -552,15 +531,9 @@ def create_challenging_dataset() -> pd.DataFrame:
     domain_b = "SKTVEKTLDSLRSAAADMIAKYKITPAGTEAFDHLRQTLESDAAALSKHEGL"
     domain_c = "TSEQQIAELNQVLESLPKTLEDLRNEVIKTTFTVTE"
 
-    protein1 = (
-        domain_a + domain_b
-    )  # Shares domain_a with protein3, domain_b with protein2
-    protein2 = (
-        domain_b + domain_c
-    )  # Shares domain_b with protein1, domain_c with protein3
-    protein3 = (
-        domain_c + domain_a
-    )  # Shares domain_c with protein2, domain_a with protein1
+    protein1 = domain_a + domain_b  # Shares domain_a with protein3, domain_b with protein2
+    protein2 = domain_b + domain_c  # Shares domain_b with protein1, domain_c with protein3
+    protein3 = domain_c + domain_a  # Shares domain_c with protein2, domain_a with protein1
 
     data.append(
         {
