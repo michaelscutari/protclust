@@ -1,5 +1,5 @@
 <p align="left">
-  <img src="assets/images/logo.png" alt="protclust logo" width="300"/>
+  <img src="assets/images/logo.png" alt="protclust logo" width="100"/>
 </p>
 
 # protclust
