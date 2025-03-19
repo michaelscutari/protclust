@@ -11,7 +11,7 @@ tape/
 
 # build artifacts
 build/
-protoclust.egg-info/
+protclust.egg-info/
 protoclust/__pycache__/
 __pycache__
 .api_token
