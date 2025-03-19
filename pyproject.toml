@@ -39,7 +39,7 @@ dependencies = [
 "Documentation" = "https://github.com/michaelscutari/protclust"
 
 [tool.setuptools]
-packages = ["protclust"]
+packages = ["protclust", "protclust.embeddings"]
 
 [tool.ruff]
 line-length = 100
