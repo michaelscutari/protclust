@@ -1,3 +1,5 @@
+import logging
+
 import numpy as np
 import pandas as pd
 
@@ -836,29 +838,43 @@ def milp_split(
     # Try different solver options in order of preference
     solver = None
 
-    # Option 1: Try PuLP's CBC CMD interface
-    try:
-        solver = PULP_CBC_CMD(timeLimit=time_limit)
-        prob.solve(solver)
-    except PulpSolverError as e:
-        logger.warning(f"CBC solver not available: {e}")
-        solver = None
-
-    # Option 2: Try COIN_CMD if available (needs coinor-cbc installed)
-    if solver is None:
+    if logger.level <= logging.INFO:
+        # Option 1: Try PuLP's CBC CMD interface
         try:
-            logger.info("Trying COIN_CMD solver")
-            solver = COIN_CMD(timeLimit=time_limit)
+            solver = PULP_CBC_CMD(timeLimit=time_limit)
             prob.solve(solver)
-        except (PulpSolverError, Exception) as e:
-            logger.warning(f"COIN_CMD solver not available: {e}")
+        except PulpSolverError as e:
+            logger.warning(f"CBC solver not available: {e}")
             solver = None
 
-    # Option 3: Fall back to default solver with no time limit
-    if solver is None:
-        logger.warning("No time-limited solver available. Using default solver without time limit.")
-        logger.warning("To enable time limits, install CBC solver: pip install pulp[cbc]")
-        prob.solve()
+        # Option 2: Try COIN_CMD if available (needs coinor-cbc installed)
+        if solver is None:
+            try:
+                logger.info("Trying COIN_CMD solver")
+                solver = COIN_CMD(timeLimit=time_limit)
+                prob.solve(solver)
+            except (PulpSolverError, Exception) as e:
+                logger.warning(f"COIN_CMD solver not available: {e}")
+                solver = None
+
+        # Option 3: Fall back to default solver with no time limit
+        if solver is None:
+            logger.warning(
+                "No time-limited solver available. Using default solver without time limit."
+            )
+            logger.warning("To enable time limits, install CBC solver: pip install pulp[cbc]")
+            prob.solve()
+    else:
+        # Run solvers silently at WARNING or higher levels
+        try:
+            solver = PULP_CBC_CMD(timeLimit=time_limit, msg=False)
+            prob.solve(solver)
+        except PulpSolverError:
+            try:
+                solver = COIN_CMD(timeLimit=time_limit, msg=False)
+                prob.solve(solver)
+            except (PulpSolverError, Exception):
+                prob.solve(PULP_CBC_CMD(msg=False))
 
     logger.info(f"MILP solution status: {LpStatus[prob.status]}")
 
