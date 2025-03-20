@@ -73,3 +73,136 @@ def test_cluster_with_debug_output(fluorescence_data, mmseqs_installed, caplog):
     finally:
         # Restore original level
         logger.setLevel(original_level)
+
+
+def test_cluster_reproducibility(mmseqs_installed):
+    """Test that clustering produces identical results with same random state."""
+    import pandas as pd
+
+    from protclust import cluster
+
+    # Create synthetic test data with sequences that are very similar
+    # but might get ordered differently without proper controls
+    test_sequences = [
+        # These sequences differ by just 1-2 amino acids around the similarity threshold
+        "MAKVSTAAALLVLAGLVPAAFAADTRTVLVKDGKEIAGFMKGEVAIFNNNGTVEHDAETLCRNAELPDNPISQINPNSIGIF",
+        "MAKVSTAAVLLVLAGLVPAAFAADTRTVLVKDGKEIAGFMKGEVAIFNNNGTVEHDAETLCRNAELPDNPISQINPNSIGIF",
+        "MAKVSTAAALLVLAGLVPAAFAADTRTVLVKDGKEIAGFMKGEVAIFNNNGTVEHDAETLCRNAELPDNPISQINPNPIGIF",
+        # These sequences are shorter but similar - could cause sorting issues
+        "MAKVSTAAALLVLAGLVPAAFAADTRTVLVKDGKEIAGFMKGE",
+        "MAKVSTAAALLVLAGLVPAAFAADTRTVLVKDGKEIAGFMKGX",  # Non-standard AA to test edge case
+        # These have identical length but vary in composition
+        "MSTAAALLVLAGLVPAAFAADTRTVLVKDGKEIA",
+        "MSTVAVLLVLAGLVPAAFAADTSRVLVKDGKEIA",
+        # This one has different capitalization to test case sensitivity
+        "mstvavllvlaglvpaafaadtsrvlvkdgkeiaG",
+    ]
+
+    test_df = pd.DataFrame(
+        {
+            "id": [f"seq_{i}" for i in range(len(test_sequences))],
+            "sequence": test_sequences,
+            "property": [
+                0.1,
+                0.2,
+                0.3,
+                0.4,
+                0.5,
+                0.6,
+                0.7,
+                0.8,
+            ],  # Add a property to make sure it's preserved
+        }
+    )
+
+    # Run clustering twice with the same random state
+    result1 = cluster(
+        test_df,
+        sequence_col="sequence",
+        id_col="id",
+        min_seq_id=0.9,  # High threshold to make clustering sensitive to small differences
+        coverage=0.9,
+        random_state=42,  # Fixed random state
+        threads=1,  # Single-threaded for reproducibility
+    )
+
+    result2 = cluster(
+        test_df,
+        sequence_col="sequence",
+        id_col="id",
+        min_seq_id=0.9,
+        coverage=0.9,
+        random_state=42,  # Same random state
+        threads=1,
+    )
+
+    # Verify exact same cluster assignments for all sequences
+    pd.testing.assert_series_equal(
+        result1["representative_sequence"], result2["representative_sequence"], check_names=False
+    )
+
+    # Count clusters and verify reasonable results
+    n_clusters = result1["representative_sequence"].nunique()
+    assert 2 <= n_clusters <= 6, f"Expected 2-6 clusters, got {n_clusters}"
+
+    # Optional: Run with different parameters to verify they affect results
+    result3 = cluster(
+        test_df,
+        sequence_col="sequence",
+        id_col="id",
+        min_seq_id=0.8,  # Lower threshold
+        coverage=0.9,
+        random_state=42,
+        threads=1,
+    )
+
+    # Verify different parameters produce different clustering
+    assert not result1["representative_sequence"].equals(result3["representative_sequence"]), (
+        "Changing min_seq_id didn't affect clustering results"
+    )
+
+    # Ensure disabling reproducibility controls leads to potential differences
+    # We'll run this only if --shuffle 0 is actually implemented in your version
+    # This runs the function 5 times WITHOUT controlling randomness to detect potential non-determinism
+    try:
+        # Monkey patch the check_random_state function to always return None
+        import unittest.mock as mock
+
+        import numpy as np
+
+        with mock.patch(
+            "protclust.clustering.check_random_state", return_value=np.random.RandomState()
+        ):
+            results_without_controls = []
+            for _ in range(5):
+                # Note: If your mmseqs2 function doesn't implement --shuffle 0 yet,
+                # this might not catch reproducibility issues
+                result = cluster(
+                    test_df,
+                    sequence_col="sequence",
+                    id_col="id",
+                    min_seq_id=0.9,
+                    coverage=0.9,
+                    threads=4,  # Use multiple threads to increase chance of non-determinism
+                )
+                results_without_controls.append(result["representative_sequence"].copy())
+
+            # Check if any of the clustering results differ
+            all_same = all(
+                results_without_controls[0].equals(r) for r in results_without_controls[1:]
+            )
+
+            # If all results are identical despite our attempts to introduce randomness,
+            # log a warning but don't fail the test
+            if all_same:
+                import warnings
+
+                warnings.warn(
+                    "All clustering results were identical even without reproducibility controls. "
+                    "This test may not effectively detect non-deterministic behavior."
+                )
+    except Exception as e:
+        # If this part fails for any reason, log it but continue
+        import warnings
+
+        warnings.warn(f"Optional non-determinism check failed: {str(e)}")

@@ -5,7 +5,7 @@ import subprocess
 import tempfile
 
 from .logger import logger
-from .utils import _check_mmseqs, _validate_clustering_params
+from .utils import _check_mmseqs, _validate_clustering_params, check_random_state
 
 
 def cluster(
@@ -18,6 +18,7 @@ def cluster(
     alignment_mode=0,
     cluster_mode=0,
     cluster_steps=1,
+    random_state=None,
 ):
     """
     Clusters sequences with MMseqs2 and adds a 'representative_sequence' column.
@@ -43,6 +44,8 @@ def cluster(
             1: connected component
             2: greedy incremental
         cluster_steps (int): Number of clustering steps (default 1)
+        random_state (None, int, or RandomState): Random seed for MMseqs2 (default None).
+        threads (int): Number of threads to use (default 1). threads > 1 impacts reproducibility.
 
     Returns:
         pd.DataFrame: Original DataFrame with a new 'representative_sequence' column.
@@ -50,13 +53,17 @@ def cluster(
     logger.info("Starting sequence clustering with MMseqs2")
     logger.info(
         f"Parameters: min_seq_id={min_seq_id}, coverage={coverage}, cov_mode={cov_mode}, "
-        f"alignment_mode={alignment_mode}, cluster_mode={cluster_mode}, cluster_steps={cluster_steps}"
+        f"alignment_mode={alignment_mode}, cluster_mode={cluster_mode}, cluster_steps={cluster_steps}, "
+        f"random_state={random_state}"
     )
 
     _check_mmseqs()
     _validate_clustering_params(
         min_seq_id, coverage, cov_mode, alignment_mode, cluster_mode, cluster_steps
     )
+
+    # get random state
+    random_state = check_random_state(random_state)
 
     # Create a deep copy to avoid SettingWithCopyWarning
     result_df = df.copy(deep=True)
@@ -74,6 +81,11 @@ def cluster(
 
     # Use .loc for assignment to avoid SettingWithCopyWarning
     result_df.loc[:, "sanitized_id"] = result_df[id_col].str.replace(" ", "_")
+
+    # If user specified random state, sort input sequences to ensure reproducibility.
+    if random_state is not None:
+        result_df = result_df.sort_values(by=[sequence_col, "sanitized_id"])
+
     tmp_dir = tempfile.mkdtemp()
     logger.debug(f"Created temporary directory: {tmp_dir}")
 
@@ -107,6 +119,9 @@ def cluster(
             "--cluster-steps",
             str(cluster_steps),
         ]
+
+        if random_state is not None:
+            mmseqs_cmd.extend(["--shuffle", "0--threads", "1"])
 
         logger.debug(f"Running MMseqs2 command: {' '.join(mmseqs_cmd)}")
 
