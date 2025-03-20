@@ -121,7 +121,7 @@ def cluster(
         ]
 
         if random_state is not None:
-            mmseqs_cmd.extend(["--shuffle", "0--threads", "1"])
+            mmseqs_cmd.extend(["--shuffle", "0", "--threads", "1"])
 
         logger.debug(f"Running MMseqs2 command: {' '.join(mmseqs_cmd)}")
 
