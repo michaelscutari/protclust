@@ -15,7 +15,7 @@ from .baseline import (
     PropertyEmbedder,
 )
 from .esm import ESMEmbedder
-from .raygun import RayGunEmbedder
+from .raygun_embedder import RayGunEmbedder
 from .reduction import apply_reducer, load_reducer, reduce_dimensions, save_reducer
 from .remote import ESMAPIEmbedder
 from .storage import (
