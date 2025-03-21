@@ -15,6 +15,7 @@ from .baseline import (
     PropertyEmbedder,
 )
 from .esm import ESMEmbedder
+from .raygun import RayGunEmbedder
 from .reduction import apply_reducer, load_reducer, reduce_dimensions, save_reducer
 from .remote import ESMAPIEmbedder
 from .storage import (
@@ -30,6 +31,7 @@ from .transformers import ProtTransEmbedder
 register_embedder("esm", ESMEmbedder)
 register_embedder("prottrans", ProtTransEmbedder)
 register_embedder("esm_api", ESMAPIEmbedder)
+register_embedder("raygun", RayGunEmbedder)
 
 
 # Convenience functions for common embedding types
@@ -82,6 +84,11 @@ def prot_t5(df, sequence_col="sequence", **kwargs):
 def esm_api(df, sequence_col="sequence", **kwargs):
     """Add ESM API embeddings to DataFrame."""
     return embed_sequences(df, "esm_api", sequence_col, model_kwargs={**kwargs})
+
+
+def raygun(df, sequence_col="sequence", **kwargs):
+    """Add RayGun embeddings to DataFrame."""
+    return embed_sequences(df, "raygun", sequence_col, model_kwargs={**kwargs})
 
 
 __all__ = [

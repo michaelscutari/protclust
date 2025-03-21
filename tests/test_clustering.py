@@ -123,7 +123,6 @@ def test_cluster_reproducibility(mmseqs_installed):
         min_seq_id=0.9,  # High threshold to make clustering sensitive to small differences
         coverage=0.9,
         random_state=42,  # Fixed random state
-        threads=1,  # Single-threaded for reproducibility
     )
 
     result2 = cluster(
@@ -133,7 +132,6 @@ def test_cluster_reproducibility(mmseqs_installed):
         min_seq_id=0.9,
         coverage=0.9,
         random_state=42,  # Same random state
-        threads=1,
     )
 
     # Verify exact same cluster assignments for all sequences
@@ -153,7 +151,6 @@ def test_cluster_reproducibility(mmseqs_installed):
         min_seq_id=0.8,  # Lower threshold
         coverage=0.9,
         random_state=42,
-        threads=1,
     )
 
     # Verify different parameters produce different clustering
@@ -183,7 +180,6 @@ def test_cluster_reproducibility(mmseqs_installed):
                     id_col="id",
                     min_seq_id=0.9,
                     coverage=0.9,
-                    threads=4,  # Use multiple threads to increase chance of non-determinism
                 )
                 results_without_controls.append(result["representative_sequence"].copy())
 
