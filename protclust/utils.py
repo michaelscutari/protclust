@@ -1,6 +1,8 @@
+import os
 import shutil
 
 import numpy as np
+import pandas as pd
 
 from .logger import logger
 
@@ -26,6 +28,101 @@ def check_random_state(random_state):
     raise ValueError(f"random_state must be None, int, or RandomState, got {type(random_state)}")
 
 
+def load_fasta_to_dataframe(fasta_path):
+    """
+    Load sequences from a FASTA file into a pandas DataFrame.
+
+    Parameters:
+        fasta_path (str): Path to the FASTA file.
+
+    Returns:
+        pd.DataFrame: DataFrame with 'id' and 'sequence' columns.
+
+    Raises:
+        FileNotFoundError: If the file does not exist.
+        ValueError: If the FASTA file is empty or invalid.
+    """
+    if not os.path.exists(fasta_path):
+        logger.error(f"FASTA file not found: {fasta_path}")
+        raise FileNotFoundError(f"FASTA file not found: {fasta_path}")
+
+    ids = []
+    sequences = []
+    current_id = None
+    current_seq = []
+
+    logger.debug(f"Loading sequences from FASTA file: {fasta_path}")
+
+    with open(fasta_path, "r") as f:
+        for line in f:
+            line = line.strip()
+            if not line:
+                continue
+
+            if line.startswith(">"):
+                # Save the previous sequence if there was one
+                if current_id is not None:
+                    ids.append(current_id)
+                    sequences.append("".join(current_seq))
+
+                # Start a new sequence
+                current_id = line[1:].strip()  # Remove the '>' character
+                current_seq = []
+            else:
+                # Add to the current sequence
+                current_seq.append(line)
+
+    # Don't forget to save the last sequence
+    if current_id is not None:
+        ids.append(current_id)
+        sequences.append("".join(current_seq))
+
+    if not ids:
+        logger.error(f"No sequences found in FASTA file: {fasta_path}")
+        raise ValueError(f"No sequences found in FASTA file: {fasta_path}")
+
+    logger.info(f"Loaded {len(ids)} sequences from FASTA file")
+
+    return pd.DataFrame({"id": ids, "sequence": sequences})
+
+
+def save_dataframe_to_fasta(df, fasta_path, id_col="id", sequence_col="sequence"):
+    """
+    Save sequences from a DataFrame to a FASTA file.
+
+    Parameters:
+        df (pd.DataFrame): DataFrame containing the sequences.
+        fasta_path (str): Path where the FASTA file will be saved.
+        id_col (str): Name of the column containing sequence IDs. Default is 'id'.
+        sequence_col (str): Name of the column containing sequences. Default is 'sequence'.
+
+    Raises:
+        ValueError: If required columns are missing or if the DataFrame is empty.
+    """
+    if df.empty:
+        logger.error("Cannot save empty DataFrame to FASTA file")
+        raise ValueError("DataFrame is empty")
+
+    if id_col not in df.columns:
+        logger.error(f"ID column '{id_col}' not found in DataFrame")
+        raise ValueError(f"ID column '{id_col}' not found in DataFrame")
+
+    if sequence_col not in df.columns:
+        logger.error(f"Sequence column '{sequence_col}' not found in DataFrame")
+        raise ValueError(f"Sequence column '{sequence_col}' not found in DataFrame")
+
+    logger.debug(f"Saving {len(df)} sequences to FASTA file: {fasta_path}")
+
+    # Create directory if it doesn't exist
+    os.makedirs(os.path.dirname(fasta_path), exist_ok=True)
+
+    with open(fasta_path, "w") as f:
+        for _, row in df.iterrows():
+            f.write(f">{row[id_col]}\n{row[sequence_col]}\n")
+
+    logger.info(f"Saved {len(df)} sequences to FASTA file: {fasta_path}")
+
+
 def _check_mmseqs():
     """
     Ensures 'mmseqs' command is in PATH.
@@ -38,34 +135,3 @@ def _check_mmseqs():
             "See the README for installation instructions."
         )
     logger.debug("MMseqs2 found in PATH")
-
-
-def _validate_clustering_params(
-    min_seq_id, coverage, cov_mode, alignment_mode, cluster_mode, cluster_steps
-):
-    """
-    Validates the clustering parameters are within acceptable ranges.
-
-    Parameters:
-        min_seq_id (float): Minimum sequence identity (0-1)
-        coverage (float): Minimum coverage (0-1)
-        cov_mode (int): Coverage mode (0-2)
-        alignment_mode (int): Alignment mode (0-4)
-        cluster_mode (int): Cluster mode (0-2)
-        cluster_steps (int): Number of clustering steps (>0)
-
-    Raises:
-        ValueError: If any parameter is outside its valid range
-    """
-    if not 0 <= min_seq_id <= 1:
-        raise ValueError(f"min_seq_id must be between 0 and 1, got {min_seq_id}")
-    if not 0 <= coverage <= 1:
-        raise ValueError(f"coverage must be between 0 and 1, got {coverage}")
-    if cov_mode not in [0, 1, 2]:
-        raise ValueError(f"cov_mode must be 0, 1, or 2, got {cov_mode}")
-    if alignment_mode not in [0, 1, 2, 3, 4]:
-        raise ValueError(f"alignment_mode must be 0, 1, 2, 3, or 4, got {alignment_mode}")
-    if cluster_mode not in [0, 1, 2]:
-        raise ValueError(f"cluster_mode must be 0, 1, or 2, got {cluster_mode}")
-    if not isinstance(cluster_steps, int) or cluster_steps <= 0:
-        raise ValueError(f"cluster_steps must be a positive integer, got {cluster_steps}")

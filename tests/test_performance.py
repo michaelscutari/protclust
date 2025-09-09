@@ -6,7 +6,7 @@ import time
 import pandas as pd
 import pytest
 
-from protclust import cluster, split, train_test_cluster_split
+from protclust import cluster, split
 
 from .test_utils import create_protein_family_dataset
 
@@ -35,7 +35,7 @@ def test_clustering_scaling():
 
         # Verify basic functionality
         assert len(clustered_df) == len(df)
-        assert "representative_sequence" in clustered_df.columns
+        assert "cluster_representative" in clustered_df.columns
 
     # Calculate scaling factors
     scaling_20_to_40 = runtimes[1] / runtimes[0]
@@ -66,7 +66,7 @@ def test_splitting_performance():
     start_time = time.time()
     train_df, test_df = split(
         clustered_df,
-        group_col="representative_sequence",
+        group_col="cluster_representative",
         test_size=0.3,
         random_state=42,
     )
@@ -83,7 +83,7 @@ def test_splitting_performance():
         start_time = time.time()
         milp_train_df, milp_test_df = milp_split(
             clustered_df,
-            group_col="representative_sequence",
+            group_col="cluster_representative",
             test_size=0.3,
             balance_cols=["molecular_weight"],
             time_limit=10,
@@ -107,47 +107,6 @@ def test_splitting_performance():
     except ImportError:
         # Skip test if PuLP is not available
         pass
-
-
-def test_combined_function_efficiency():
-    """Test efficiency of combined train_test_cluster_split function."""
-    # Generate dataset
-    df = create_protein_family_dataset(
-        n_families=15, proteins_per_family=8, avg_seq_length=200, seed=42
-    )
-
-    # Time separate cluster + split
-    start_time = time.time()
-    clustered_df = cluster(df, sequence_col="sequence", id_col="id", min_seq_id=0.8)
-    train1_df, test1_df = split(
-        clustered_df,
-        group_col="representative_sequence",
-        test_size=0.3,
-        random_state=42,
-    )
-    separate_time = time.time() - start_time
-
-    # Time combined function
-    start_time = time.time()
-    train2_df, test2_df = train_test_cluster_split(
-        df,
-        sequence_col="sequence",
-        id_col="id",
-        test_size=0.3,
-        min_seq_id=0.8,
-        random_state=42,
-    )
-    combined_time = time.time() - start_time
-
-    # Verify functionality
-    assert len(train1_df) + len(test1_df) == len(df)
-    assert len(train2_df) + len(test2_df) == len(df)
-
-    # Combined function should be at least as efficient
-    # Allow for some variation (within 20%)
-    assert combined_time <= separate_time * 1.2, (
-        f"Combined function less efficient: {combined_time:.2f}s vs {separate_time:.2f}s"
-    )
 
 
 def test_memory_usage_with_large_sequences():
@@ -196,7 +155,7 @@ def test_memory_usage_with_large_sequences():
 
         # Basic functionality check
         assert len(clustered_df) == len(df)
-        assert "representative_sequence" in clustered_df.columns
+        assert "cluster_representative" in clustered_df.columns
 
     except MemoryError:
         pytest.skip("Not enough memory for large sequence test")

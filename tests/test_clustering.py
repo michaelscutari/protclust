@@ -16,17 +16,17 @@ def test_cluster_sequences(fluorescence_data, mmseqs_installed):
     )
 
     # Check results
-    assert "representative_sequence" in clustered_df.columns
+    assert "cluster_representative" in clustered_df.columns
     assert len(clustered_df) == len(df)  # Should preserve all rows
 
     # Count unique clusters
-    n_clusters = clustered_df["representative_sequence"].nunique()
+    n_clusters = clustered_df["cluster_representative"].nunique()
 
     # Basic sanity check - clusters should be fewer than sequences
     assert 1 <= n_clusters <= len(df)
 
     # Check that all representative_sequence values exist in the id column
-    assert set(clustered_df["representative_sequence"]).issubset(set(clustered_df["id"]))
+    assert set(clustered_df["cluster_representative"]).issubset(set(clustered_df["id"]))
 
 
 def test_cluster_debug_logging(fluorescence_data, mmseqs_installed, monkeypatch):
@@ -45,7 +45,7 @@ def test_cluster_debug_logging(fluorescence_data, mmseqs_installed, monkeypatch)
         result = cluster(df, sequence_col="sequence", id_col="id")
 
         # Verify the clustering completed successfully
-        assert "representative_sequence" in result.columns
+        assert "cluster_representative" in result.columns
 
     finally:
         # Restore original logging level
@@ -69,7 +69,7 @@ def test_cluster_with_debug_output(fluorescence_data, mmseqs_installed, caplog):
         result = cluster(df_small, sequence_col="sequence", id_col="id")
 
         # Verify it ran successfully
-        assert "representative_sequence" in result.columns
+        assert "cluster_representative" in result.columns
     finally:
         # Restore original level
         logger.setLevel(original_level)
@@ -136,11 +136,11 @@ def test_cluster_reproducibility(mmseqs_installed):
 
     # Verify exact same cluster assignments for all sequences
     pd.testing.assert_series_equal(
-        result1["representative_sequence"], result2["representative_sequence"], check_names=False
+        result1["cluster_representative"], result2["cluster_representative"], check_names=False
     )
 
     # Count clusters and verify reasonable results
-    n_clusters = result1["representative_sequence"].nunique()
+    n_clusters = result1["cluster_representative"].nunique()
     assert 2 <= n_clusters <= 6, f"Expected 2-6 clusters, got {n_clusters}"
 
     # Optional: Run with different parameters to verify they affect results
@@ -154,7 +154,7 @@ def test_cluster_reproducibility(mmseqs_installed):
     )
 
     # Verify different parameters produce different clustering
-    assert not result1["representative_sequence"].equals(result3["representative_sequence"]), (
+    assert not result1["cluster_representative"].equals(result3["cluster_representative"]), (
         "Changing min_seq_id didn't affect clustering results"
     )
 
@@ -181,7 +181,7 @@ def test_cluster_reproducibility(mmseqs_installed):
                     min_seq_id=0.9,
                     coverage=0.9,
                 )
-                results_without_controls.append(result["representative_sequence"].copy())
+                results_without_controls.append(result["cluster_representative"].copy())
 
             # Check if any of the clustering results differ
             all_same = all(

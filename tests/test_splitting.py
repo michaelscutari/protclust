@@ -5,12 +5,8 @@ import pytest
 
 from protclust import (
     cluster,
-    cluster_kfold,
-    constrained_split,
     milp_split,
     split,
-    train_test_cluster_split,
-    train_test_val_cluster_split,
 )
 
 logger = logging.getLogger(__name__)
@@ -26,8 +22,8 @@ def test_split_data(fluorescence_data):
     n_groups = 10
     df["group"] = np.random.randint(0, n_groups, size=len(df))
 
-    # Run splitting
-    train_df, test_df = split(df, group_col="group", test_size=0.3)
+    # Run splitting with optimal algorithm
+    train_df, test_df = split(df, group_col="group", test_size=0.3, algorithm="optimal")
 
     # Check results
     assert len(train_df) + len(test_df) == len(df)
@@ -41,135 +37,22 @@ def test_split_data(fluorescence_data):
     test_ratio = len(test_df) / len(df)
     assert 0.25 <= test_ratio <= 0.35  # Allow some flexibility due to group constraints
 
-
-def test_train_test_cluster_split(fluorescence_data, mmseqs_installed):
-    """Test combined clustering and splitting."""
-    df = fluorescence_data.copy()
-
-    # Run combined function
-    train_df, test_df = train_test_cluster_split(
-        df,
-        sequence_col="sequence",
-        id_col="id",
-        test_size=0.3,
-        min_seq_id=0.99,
-        coverage=0.8,
+    # Run splitting with greedy algorithm
+    train_df_greedy, test_df_greedy = split(
+        df, group_col="group", test_size=0.3, algorithm="greedy"
     )
 
-    # Check results
-    assert len(train_df) + len(test_df) == len(df)
+    # Check results for greedy algorithm
+    assert len(train_df_greedy) + len(test_df_greedy) == len(df)
 
-    # Check representative_sequence column
-    assert "representative_sequence" in train_df.columns
-    assert "representative_sequence" in test_df.columns
-
-    # Check that clusters are preserved (no cluster appears in both train and test)
-    train_clusters = set(train_df["representative_sequence"])
-    test_clusters = set(test_df["representative_sequence"])
-    assert len(train_clusters.intersection(test_clusters)) == 0
+    # Check that groups are preserved (no group appears in both train and test)
+    train_groups_greedy = set(train_df_greedy["group"])
+    test_groups_greedy = set(test_df_greedy["group"])
+    assert len(train_groups_greedy.intersection(test_groups_greedy)) == 0
 
     # Check approximate test size
-    test_ratio = len(test_df) / len(df)
-    assert 0.25 <= test_ratio <= 0.35  # Allow some flexibility due to group constraints
-
-
-def test_train_test_val_cluster_split(fluorescence_data, mmseqs_installed):
-    """Test three-way splitting."""
-    df = fluorescence_data.copy()
-
-    # Run three-way split
-    train_df, val_df, test_df = train_test_val_cluster_split(
-        df,
-        sequence_col="sequence",
-        id_col="id",
-        test_size=0.2,
-        val_size=0.1,
-        min_seq_id=0.99,
-        coverage=0.8,
-    )
-
-    # Check results
-    assert len(train_df) + len(val_df) + len(test_df) == len(df)
-
-    # Check that clusters are preserved (no cluster appears in multiple splits)
-    train_clusters = set(train_df["representative_sequence"])
-    val_clusters = set(val_df["representative_sequence"])
-    test_clusters = set(test_df["representative_sequence"])
-
-    assert len(train_clusters.intersection(val_clusters)) == 0
-    assert len(train_clusters.intersection(test_clusters)) == 0
-    assert len(val_clusters.intersection(test_clusters)) == 0
-
-    # Check approximate split sizes
-    total = len(df)
-    assert 0.15 <= len(test_df) / total <= 0.25
-    assert 0.05 <= len(val_df) / total <= 0.15
-    assert 0.65 <= len(train_df) / total <= 0.75
-
-
-def test_constrained_split(fluorescence_data, mmseqs_installed):
-    """Test constrained splitting."""
-    df = fluorescence_data.copy()
-
-    # First cluster the data
-    clustered_df = cluster(df, sequence_col="sequence", id_col="id", min_seq_id=0.99, coverage=0.8)
-
-    # Force specific IDs to train and test sets
-    force_train_ids = [clustered_df.loc[0, "id"]]
-    force_test_ids = [clustered_df.loc[50, "id"]]  # Assuming at least 51 proteins
-
-    # Run constrained split
-    train_df, test_df = constrained_split(
-        clustered_df,
-        group_col="representative_sequence",
-        id_col="id",
-        test_size=0.3,
-        force_train_ids=force_train_ids,
-        force_test_ids=force_test_ids,
-        id_type="sequence",
-    )
-
-    # Check results
-    assert len(train_df) + len(test_df) == len(clustered_df)
-
-    # Check that forced IDs are in the correct sets
-    assert all(id_val in train_df["id"].values for id_val in force_train_ids)
-    assert all(id_val in test_df["id"].values for id_val in force_test_ids)
-
-    # Check that groups are preserved
-    train_clusters = set(train_df["representative_sequence"])
-    test_clusters = set(test_df["representative_sequence"])
-    assert len(train_clusters.intersection(test_clusters)) == 0
-
-
-def test_cluster_kfold(fluorescence_data, mmseqs_installed):
-    """Test k-fold cross-validation with clustering."""
-    df = fluorescence_data.copy()
-
-    # Run k-fold
-    n_splits = 4
-    folds = cluster_kfold(
-        df,
-        sequence_col="sequence",
-        id_col="id",
-        n_splits=n_splits,
-        min_seq_id=0.99,
-        coverage=0.8,
-        random_state=42,
-    )
-
-    # Check number of folds
-    assert len(folds) == n_splits
-
-    # Check each fold
-    for i, (train_df, test_df) in enumerate(folds):
-        # Check that all samples are accounted for
-        assert len(train_df) + len(test_df) == len(df)
-
-        # Check that clusters are preserved
-        train_clusters = set(train_df["representative_sequence"])
-        test_clusters = set(test_df["representative_sequence"])
-        assert len(train_clusters.intersection(test_clusters)) == 0
+    test_ratio_greedy = len(test_df_greedy) / len(df)
+    assert 0.25 <= test_ratio_greedy <= 0.35  # Allow some flexibility due to group constraints
 
 
 def test_milp_split(fluorescence_data, mmseqs_installed):
@@ -187,21 +70,19 @@ def test_milp_split(fluorescence_data, mmseqs_installed):
     # Run MILP split with distribution similarity, balancing fluorescence
     train_df, test_df = milp_split(
         clustered_df,
-        group_col="representative_sequence",
+        group_col="cluster_representative",
         test_size=0.3,
         balance_cols=["fluorescence"],
         balance_weight=2.0,
-        variance_weight=1.0,
         time_limit=10,
-        range_weight=1.0,
     )
 
     # Check that all samples are accounted for
     assert len(train_df) + len(test_df) == len(clustered_df)
 
     # Check that groups are preserved (no cluster appears in both splits)
-    train_groups = set(train_df["representative_sequence"])
-    test_groups = set(test_df["representative_sequence"])
+    train_groups = set(train_df["cluster_representative"])
+    test_groups = set(test_df["cluster_representative"])
     assert len(train_groups.intersection(test_groups)) == 0
 
     # Check approximate test size
@@ -236,9 +117,7 @@ def test_milp_split(fluorescence_data, mmseqs_installed):
     )
 
     # For comparison, perform a naive split and check balance
-    naive_train, naive_test = split(
-        clustered_df, group_col="representative_sequence", test_size=0.3
-    )
+    naive_train, naive_test = split(clustered_df, group_col="cluster_representative", test_size=0.3)
 
     # Calculate distribution statistics for naive split
     naive_train_mean = naive_train["fluorescence"].mean()
@@ -351,27 +230,18 @@ def test_enhanced_milp_split(fluorescence_data, protein_data=None):
         protein_df = pd.DataFrame(protein_data)
 
     # Add cluster column if it doesn't exist (for testing purposes)
-    if "representative_sequence" not in protein_df.columns:
+    if "cluster_representative" not in protein_df.columns:
         # Use a simple clustering based on protein length
-        protein_df["representative_sequence"] = protein_df["id"].copy()
+        protein_df["cluster_representative"] = protein_df["id"].copy()
 
     # Run enhanced MILP split with protein data
     logger.info("Running enhanced MILP split with protein data")
     train_protein_df, test_protein_df = milp_split(
         protein_df,
-        group_col="representative_sequence",
+        group_col="cluster_representative",
         test_size=0.3,
-        balance_cols=["protein_length", "class_label", "fold_label"],
-        categorical_cols=[
-            "class_label",
-            "fold_label",
-            "superfamily_label",
-            "family_label",
-        ],
-        residue_cols=["secondary_structure", "solvent_accessibility"],
+        balance_cols=["protein_length"],
         balance_weight=2.0,
-        variance_weight=1.0,
-        range_weight=1.0,
         time_limit=10,
         random_state=42,
     )
@@ -380,8 +250,8 @@ def test_enhanced_milp_split(fluorescence_data, protein_data=None):
     assert len(train_protein_df) + len(test_protein_df) == len(protein_df)
 
     # Check that groups are preserved (no cluster appears in both splits)
-    train_groups = set(train_protein_df["representative_sequence"])
-    test_groups = set(test_protein_df["representative_sequence"])
+    train_groups = set(train_protein_df["cluster_representative"])
+    test_groups = set(test_protein_df["cluster_representative"])
     assert len(train_groups.intersection(test_groups)) == 0
 
     # Check approximate test size
@@ -402,20 +272,16 @@ def test_enhanced_milp_split(fluorescence_data, protein_data=None):
         ]
 
         # Add cluster column if it doesn't exist
-        if "representative_sequence" not in df.columns:
-            df["representative_sequence"] = df["id"].copy()
+        if "cluster_representative" not in df.columns:
+            df["cluster_representative"] = df["id"].copy()
 
         logger.info("Running enhanced MILP split with fluorescence data")
         train_df, test_df = milp_split(
             df,
-            group_col="representative_sequence",
+            group_col="cluster_representative",
             test_size=0.3,
             balance_cols=["fluorescence"],
-            categorical_cols=["sequence_type", "expression_level"],
-            residue_cols=["residue_hydrophobicity"],
             balance_weight=2.0,
-            variance_weight=1.0,
-            range_weight=1.0,
             time_limit=10,
             random_state=42,
         )
@@ -498,28 +364,11 @@ def test_empty_dataset_handling():
     from protclust import split
 
     # Create empty DataFrame with the required columns
-    empty_df = pd.DataFrame(columns=["representative_sequence", "id"])
+    empty_df = pd.DataFrame(columns=["cluster_representative", "id"])
 
     # Test basic split - this doesn't call mmseqs
-    train_df, test_df = split(empty_df, group_col="representative_sequence")
+    train_df, test_df = split(empty_df, group_col="cluster_representative")
     assert len(train_df) == 0 and len(test_df) == 0
-
-
-def test_embedder_edge_cases():
-    """Test edge cases and error handling in embedders."""
-    from protclust.embeddings import BLOSUMEmbedder
-
-    # Test with invalid pooling method
-    embedder = BLOSUMEmbedder()
-    with pytest.raises(ValueError):
-        embedder.generate("ACDEFG", pooling="invalid_method")
-
-    # Test empty sequence
-    empty_result = embedder.generate("")
-    assert empty_result.shape == (
-        0,
-        20,
-    )  # Should return empty array with correct dimensions
 
 
 def test_milp_split_categorical_handling(fluorescence_data):
@@ -535,15 +384,14 @@ def test_milp_split_categorical_handling(fluorescence_data):
     df["binary"] = np.random.choice([0, 1], size=len(df))
 
     # Add cluster column simulation
-    df["representative_sequence"] = df.index.astype(str)
+    df["cluster_representative"] = df.index.astype(str)
 
     try:
         # Test with categorical columns
         train_df, test_df = milp_split(
             df,
-            group_col="representative_sequence",
+            group_col="cluster_representative",
             test_size=0.3,
-            categorical_cols=["category"],
             time_limit=1,  # Short timeout to avoid hanging tests
         )
 

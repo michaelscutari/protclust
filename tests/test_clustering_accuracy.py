@@ -17,14 +17,14 @@ def test_cluster_basic_functionality(synthetic_cluster_data, mmseqs_installed):
     )
 
     # Check that all sequences are assigned to a representative
-    assert "representative_sequence" in clustered_df.columns
-    assert clustered_df["representative_sequence"].notna().all()
+    assert "cluster_representative" in clustered_df.columns
+    assert clustered_df["cluster_representative"].notna().all()
 
     # Extract cluster assignments
     cluster_assignments = {}
     for _, row in clustered_df.iterrows():
         seq_id = row["id"]
-        rep_id = row["representative_sequence"]
+        rep_id = row["cluster_representative"]
 
         if rep_id not in cluster_assignments:
             cluster_assignments[rep_id] = []
@@ -66,10 +66,10 @@ def test_clustering_identity_thresholds(identity_test_data, mmseqs_installed):
 
         # Get base sequence and its representative
         base_seq_row = clustered_df[clustered_df["id"] == "base_seq"]
-        base_rep = base_seq_row["representative_sequence"].iloc[0]
+        base_rep = base_seq_row["cluster_representative"].iloc[0]
 
         # Get all sequences assigned to the same cluster as the base sequence
-        same_cluster_mask = clustered_df["representative_sequence"] == base_rep
+        same_cluster_mask = clustered_df["cluster_representative"] == base_rep
         same_cluster_ids = clustered_df.loc[same_cluster_mask, "id"].tolist()
 
         # Check which identity levels are in the same cluster as the base sequence
@@ -124,7 +124,7 @@ def test_edge_case_clustering(edge_case_data, mmseqs_installed):
     # 1. Check that identical sequences are clustered together
     identical_ids = df[df["case_type"] == "identical"]["id"].tolist()
     identical_reps = clustered_df.loc[
-        clustered_df["id"].isin(identical_ids), "representative_sequence"
+        clustered_df["id"].isin(identical_ids), "cluster_representative"
     ].tolist()
 
     # Both identical sequences should have the same representative
@@ -157,5 +157,5 @@ def test_edge_case_clustering(edge_case_data, mmseqs_installed):
     # MMseqs2 could reasonably cluster them together or separately depending on
     # its exact algorithm. Instead of specifying exactly how they should cluster,
     # we'll just verify that the clustering ran without errors.
-    assert "representative_sequence" in high_threshold_df.columns
-    assert high_threshold_df["representative_sequence"].notna().all()
+    assert "cluster_representative" in high_threshold_df.columns
+    assert high_threshold_df["cluster_representative"].notna().all()

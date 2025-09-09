@@ -68,12 +68,10 @@ def test_extreme_sequence_lengths():
 
         # Check all sequences were processed
         assert len(clustered_df) == len(df)
-        assert "representative_sequence" in clustered_df.columns
+        assert "cluster_representative" in clustered_df.columns
 
         # Check extreme length sequences weren't all grouped together
-        long_reps = clustered_df[clustered_df["type"] == "long"][
-            "representative_sequence"
-        ].nunique()
+        long_reps = clustered_df[clustered_df["type"] == "long"]["cluster_representative"].nunique()
 
         # Short sequences might cluster together due to limited variation possibilities
         # but long sequences should definitely not all cluster
@@ -149,9 +147,9 @@ def test_biased_composition_sequences():
 
     # Different bias types should not cluster together
     hydrophobic_reps = set(
-        clustered_df[clustered_df["type"] == "hydrophobic"]["representative_sequence"]
+        clustered_df[clustered_df["type"] == "hydrophobic"]["cluster_representative"]
     )
-    charged_reps = set(clustered_df[clustered_df["type"] == "charged"]["representative_sequence"])
+    charged_reps = set(clustered_df[clustered_df["type"] == "charged"]["cluster_representative"])
 
     assert len(hydrophobic_reps.intersection(charged_reps)) == 0, (
         "Hydrophobic and charged sequences incorrectly clustered together"
@@ -206,10 +204,8 @@ def test_repeating_motif_sequences():
     assert len(clustered_df) == len(df)
 
     # Repetitive sequences shouldn't cluster with normal sequences
-    rep_clusters = set(
-        clustered_df[clustered_df["type"] == "repetitive"]["representative_sequence"]
-    )
-    normal_clusters = set(clustered_df[clustered_df["type"] == "normal"]["representative_sequence"])
+    rep_clusters = set(clustered_df[clustered_df["type"] == "repetitive"]["cluster_representative"])
+    normal_clusters = set(clustered_df[clustered_df["type"] == "normal"]["cluster_representative"])
 
     # There should be very limited overlap if any
     overlap = len(rep_clusters.intersection(normal_clusters))
@@ -274,10 +270,10 @@ def test_clustering_identical_sequences():
 
     # Nearly identical may or may not cluster with high threshold
     # Different sequences should definitely not cluster with identical ones
-    identical_rep = high_id_df[high_id_df["type"] == "identical"]["representative_sequence"].iloc[0]
+    identical_rep = high_id_df[high_id_df["type"] == "identical"]["cluster_representative"].iloc[0]
     different_in_identical_cluster = high_id_df[
         (high_id_df["type"] == "different")
-        & (high_id_df["representative_sequence"] == identical_rep)
+        & (high_id_df["cluster_representative"] == identical_rep)
     ]
 
     assert len(different_in_identical_cluster) == 0, (
@@ -294,10 +290,10 @@ def test_clustering_identical_sequences():
     )
 
     # Nearly identical should now cluster with identical
-    identical_rep = low_id_df[low_id_df["type"] == "identical"]["representative_sequence"].iloc[0]
+    identical_rep = low_id_df[low_id_df["type"] == "identical"]["cluster_representative"].iloc[0]
     nearly_in_identical_cluster = low_id_df[
         (low_id_df["type"] == "nearly_identical")
-        & (low_id_df["representative_sequence"] == identical_rep)
+        & (low_id_df["cluster_representative"] == identical_rep)
     ]
 
     assert len(nearly_in_identical_cluster) > 0, (
@@ -360,7 +356,7 @@ def test_multidomain_proteins():
     # Only identical architectures should cluster together
     high_param_groups = {}
     for _, row in high_params_df.iterrows():
-        rep = row["representative_sequence"]
+        rep = row["cluster_representative"]
         arch = row["architecture"]
         if rep not in high_param_groups:
             high_param_groups[rep] = []
@@ -383,7 +379,7 @@ def test_multidomain_proteins():
     )
 
     # Check that at least some different architectures with shared domains cluster together
-    low_param_clusters = low_params_df.groupby("representative_sequence")["architecture"].unique()
+    low_param_clusters = low_params_df.groupby("cluster_representative")["architecture"].unique()
 
     # At least one cluster should have multiple architectures
     multiple_arch_clusters = [archs for archs in low_param_clusters if len(archs) > 1]

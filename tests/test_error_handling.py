@@ -138,8 +138,8 @@ def test_empty_dataset_handling():
             )
 
     # Test splitting empty dataset
-    empty_with_rep = pd.DataFrame({"id": [], "representative_sequence": []})
-    train_df, test_df = split(empty_with_rep, group_col="representative_sequence")
+    empty_with_rep = pd.DataFrame({"id": [], "cluster_representative": []})
+    train_df, test_df = split(empty_with_rep, group_col="cluster_representative")
     assert len(train_df) == 0 and len(test_df) == 0, (
         "Splitting empty DataFrame should produce empty train and test sets"
     )
@@ -167,13 +167,13 @@ def test_edge_case_sequence_lengths(challenging_protein_data, mmseqs_installed):
             coverage=0.5,  # Lower coverage for variable length sequences
         )
         assert len(clustered_df) == len(df), "All sequences should be preserved in clustering"
-        assert "representative_sequence" in clustered_df.columns
+        assert "cluster_representative" in clustered_df.columns
 
         # Verify that both short and long sequences have been assigned clusters
         for case_type in ["short_sequence", "long_sequence"]:
             case_rows = clustered_df[df["case_type"] == case_type]
             assert not case_rows.empty, f"No {case_type} found in result"
-            assert case_rows["representative_sequence"].notna().all(), (
+            assert case_rows["cluster_representative"].notna().all(), (
                 f"{case_type} missing cluster assignment"
             )
 
@@ -225,7 +225,7 @@ def test_multithread_consistency(realistic_protein_data, mmseqs_installed):
     # We compare cluster counts rather than exact assignments,
     # since thread count might affect the exact representative sequence chosen
     assert (
-        result1["representative_sequence"].nunique() == result2["representative_sequence"].nunique()
+        result1["cluster_representative"].nunique() == result2["cluster_representative"].nunique()
     ), "Different thread count produced different number of clusters"
 
 

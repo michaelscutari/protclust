@@ -4,15 +4,15 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "protclust"
-version = "0.1.5.post1"
-description = "Python tools for protein sequence clustering and embedding"
+version = "0.2.0"
+description = "Python tools for protein sequence clustering and dataset splitting"
 readme = "README.md"
 requires-python = ">=3.7"
 license = { text = "MIT" }
 authors = [
     { name = "Michael Scutari" },
 ]
-keywords = ["bioinformatics", "protein", "clustering", "embeddings", "machine learning"]
+keywords = ["bioinformatics", "protein", "clustering", "machine learning"]
 classifiers = [
     "Programming Language :: Python :: 3",
     "License :: OSI Approved :: MIT License",
@@ -25,11 +25,6 @@ dependencies = [
     "numpy>=1.20.0",
     "pandas>=1.5.0",
     "scikit-learn>=1.0.0",
-    "h5py>=3.0.0",
-    "torch>=1.10.0",
-    "fair-esm>=2.0.0",
-    "transformers>=4.15.0",
-    "requests>=2.25.0",
     "pulp>=2.0.0",
 ]
 
@@ -39,7 +34,7 @@ dependencies = [
 "Documentation" = "https://github.com/michaelscutari/protclust"
 
 [tool.setuptools]
-packages = ["protclust", "protclust.embeddings"]
+packages = ["protclust"]
 
 [tool.ruff]
 line-length = 100

@@ -13,7 +13,6 @@
 A Python library for working with protein sequence data, providing:
 - Clustering capabilities via MMseqs2
 - Machine learning dataset creation with cluster-aware splits
-- Protein sequence embeddings and feature extraction
 
 ---
 
@@ -93,66 +92,19 @@ clean_df = clean(df, sequence_col="sequence")
 clustered_df = cluster(clean_df, sequence_col="sequence", id_col="id")
 
 # Split data into train and test sets
-train_df, test_df = split(clustered_df, group_col="representative_sequence", test_size=0.3)
+train_df, test_df = split(clustered_df, group_col="cluster_representative", test_size=0.3)
 
 print("Train set:\n", train_df)
 print("Test set:\n", test_df)
-
-# Or use the combined function
-from protclust import train_test_cluster_split
-train_df, test_df = train_test_cluster_split(df, sequence_col="sequence", id_col="id", test_size=0.3)
-```
-
-### Advanced Splitting Options
-
-```python
-# Three-way split
-from protclust import train_test_val_cluster_split
-train_df, val_df, test_df = train_test_val_cluster_split(
-    df, sequence_col="sequence", test_size=0.2, val_size=0.1
-)
-
-# K-fold cross-validation with cluster awareness
-from protclust import cluster_kfold
-folds = cluster_kfold(df, sequence_col="sequence", n_splits=5)
 
 # MILP-based splitting with property balancing
 from protclust import milp_split
 train_df, test_df = milp_split(
     clustered_df,
-    group_col="representative_sequence",
+    group_col="cluster_representative",
     test_size=0.3,
     balance_cols=["molecular_weight", "hydrophobicity"]
 )
-```
-
-### Protein Embeddings
-
-```python
-# Basic embeddings
-from protclust.embeddings import blosum62, aac, property_embedding, onehot
-
-# Add BLOSUM62 embeddings
-df_with_blosum = blosum62(df, sequence_col="sequence")
-
-# Generate embeddings with ESM models (requires extra dependencies)
-from protclust.embeddings import embed_sequences
-
-# ESM embedding
-df_with_esm = embed_sequences(df, "esm", sequence_col="sequence")
-
-# Saving embeddings to HDF5
-df_with_refs = embed_sequences(
-    df,
-    "esm",
-    sequence_col="sequence",
-    use_hdf=True,
-    hdf_path="embeddings.h5"
-)
-
-# Retrieve embeddings
-from protclust.embeddings import get_embeddings
-embeddings = get_embeddings(df_with_refs, "esm", hdf_path="embeddings.h5")
 ```
 
 ## Parameters
@@ -165,6 +117,8 @@ Common parameters for clustering functions:
 - `min_seq_id`: Minimum sequence identity threshold (0.0-1.0, default 0.3)
 - `coverage`: Minimum alignment coverage (0.0-1.0, default 0.5)
 - `cov_mode`: Coverage mode (0-3, default 0)
+- `cluster_mode`: Clustering algorithm (0: Set-Cover, 1: Connected component, 2: Greedy by length, default 0)
+- `cluster_steps`: Number of cascaded clustering steps for large datasets (default 1)
 - `test_size`: Desired fraction of data in test set (default 0.2)
 - `random_state`: Random seed for reproducibility
 - `tolerance`: Acceptable deviation from desired split sizes (default 0.05)
@@ -193,7 +147,7 @@ If you use protclust in your research, please cite:
   author = {Michael Scutari},
   title = {protclust: Protein Sequence Clustering and ML Dataset Creation},
   url = {https://github.com/michaelscutari/protclust},
-  version = {0.1.0},
+  version = {0.2.0},
   year = {2025},
 }
 ```
