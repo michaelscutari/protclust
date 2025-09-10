@@ -135,10 +135,10 @@ def test_biased_composition_sequences():
 
     # Similar bias should tend to cluster together, but not all
     hydrophobic_clusters = clustered_df[clustered_df["type"] == "hydrophobic"][
-        "representative_sequence"
+        "cluster_representative"
     ].nunique()
     charged_clusters = clustered_df[clustered_df["type"] == "charged"][
-        "representative_sequence"
+        "cluster_representative"
     ].nunique()
 
     # Some clustering of similar composition is expected, but not all in one cluster
@@ -264,7 +264,7 @@ def test_clustering_identical_sequences():
 
     # Identical sequences must cluster together
     identical_reps = high_id_df[high_id_df["type"] == "identical"][
-        "representative_sequence"
+        "cluster_representative"
     ].nunique()
     assert identical_reps == 1, "Identical sequences didn't cluster together"
 

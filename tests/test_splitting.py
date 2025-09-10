@@ -366,9 +366,9 @@ def test_empty_dataset_handling():
     # Create empty DataFrame with the required columns
     empty_df = pd.DataFrame(columns=["cluster_representative", "id"])
 
-    # Test basic split - this doesn't call mmseqs
-    train_df, test_df = split(empty_df, group_col="cluster_representative")
-    assert len(train_df) == 0 and len(test_df) == 0
+    # Test basic split - should raise ValueError for empty DataFrame
+    with pytest.raises(ValueError, match="Cannot split empty DataFrame"):
+        split(empty_df, group_col="cluster_representative")
 
 
 def test_milp_split_categorical_handling(fluorescence_data):

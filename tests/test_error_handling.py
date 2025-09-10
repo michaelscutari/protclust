@@ -137,12 +137,10 @@ def test_empty_dataset_handling():
                 for term in ["empty", "no sequences", "no data", "length", "zero"]
             )
 
-    # Test splitting empty dataset
+    # Test splitting empty dataset - should raise ValueError
     empty_with_rep = pd.DataFrame({"id": [], "cluster_representative": []})
-    train_df, test_df = split(empty_with_rep, group_col="cluster_representative")
-    assert len(train_df) == 0 and len(test_df) == 0, (
-        "Splitting empty DataFrame should produce empty train and test sets"
-    )
+    with pytest.raises(ValueError, match="Cannot split empty DataFrame"):
+        split(empty_with_rep, group_col="cluster_representative")
 
 
 def test_edge_case_sequence_lengths(challenging_protein_data, mmseqs_installed):
